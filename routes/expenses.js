@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Expense = require("../models/Expense");
+const Expense = require("../models/expense");
 
 // Route to get all expenses
 router.get("/", async (req, res) => {
