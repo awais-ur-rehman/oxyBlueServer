@@ -5,8 +5,12 @@ const Expense = require("../models/expense");
 // Route to get all expenses
 router.get("/", async (req, res) => {
   try {
-    const expenses = await Expense.find();
-    res.json(expenses);
+    const expenses = await Expense.find().lean();
+    const formattedExpenses = expenses.map((expense) => ({
+      ...expense,
+      _id: expense._id.toString(),
+    }));
+    res.json(formattedExpenses);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
