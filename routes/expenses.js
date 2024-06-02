@@ -16,6 +16,16 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Route to get expenses with category "Rashan Exp."
+router.get("/rashan-exp", async (req, res) => {
+  try {
+    const expenses = await Expense.find({ expense_category: "Welfare Funds" });
+    res.json(expenses);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Route to add a new expense
 router.post("/add-expense", async (req, res) => {
   const { date, amount, expense_category, comment } = req.body;
