@@ -104,4 +104,24 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// Router for Rider Login
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const rider = await Rider.findOne({ email });
+    if (rider) {
+      if (password == rider.password) {
+        res.json({ message: "Login Successful", rider: rider });
+      } else {
+        res.status(401).json({ message: "Invalid Password" });
+      }
+    } else {
+      res.status(404).json({ message: "Rider not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
