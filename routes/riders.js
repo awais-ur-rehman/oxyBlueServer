@@ -106,10 +106,10 @@ router.delete("/:id", async (req, res) => {
 
 // Router for Rider Login
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { name, password } = req.body;
 
   try {
-    const rider = await Rider.findOne({ email });
+    const rider = await Rider.findOne({ name });
     if (rider) {
       if (password == rider.password) {
         res.json({ message: "Login Successful", rider: rider });
