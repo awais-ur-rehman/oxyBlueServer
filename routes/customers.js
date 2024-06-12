@@ -18,25 +18,9 @@ router.get("/", async (req, res) => {
 
 // Route to add a new customer
 router.post("/add-customer", async (req, res) => {
-  const {
-    name,
-    phone_number,
-    address,
-    bottles_to_be_delivered,
-    bottles_to_get,
-    coupon,
-    bill,
-  } = req.body;
+  const { name, phone_number, address, assigned_to, deliveryDay } = req.body;
 
-  if (
-    !name ||
-    !phone_number ||
-    !address ||
-    bottles_to_be_delivered === undefined ||
-    bottles_to_get === undefined ||
-    coupon === undefined ||
-    bill === undefined
-  ) {
+  if (!name || !phone_number || !address || !assigned_to || !deliveryDay) {
     return res
       .status(400)
       .json({ message: "Please provide all required fields" });
@@ -46,10 +30,8 @@ router.post("/add-customer", async (req, res) => {
     name,
     phone_number,
     address,
-    bottles_to_be_delivered: parseInt(bottles_to_be_delivered),
-    bottles_to_get: parseInt(bottles_to_get),
-    coupon: Boolean(coupon),
-    bill: parseFloat(bill),
+    assigned_to,
+    deliveryDay,
   });
 
   try {
@@ -62,31 +44,19 @@ router.post("/add-customer", async (req, res) => {
 
 // Route to update a customer
 router.put("/:id", async (req, res) => {
+  const { name, phone_number, address, assigned_to, deliveryDay } = req.body;
+
   try {
     const customer = await Customer.findById(req.params.id);
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    const {
-      name,
-      phone_number,
-      address,
-      bottles_to_be_delivered,
-      bottles_to_get,
-      coupon,
-      bill,
-    } = req.body;
-
     if (name) customer.name = name;
     if (phone_number) customer.phone_number = phone_number;
     if (address) customer.address = address;
-    if (bottles_to_be_delivered !== undefined)
-      customer.bottles_to_be_delivered = parseInt(bottles_to_be_delivered);
-    if (bottles_to_get !== undefined)
-      customer.bottles_to_get = parseInt(bottles_to_get);
-    if (coupon !== undefined) customer.coupon = Boolean(coupon);
-    if (bill !== undefined) customer.bill = parseFloat(bill);
+    if (assigned_to) customer.assigned_to = assigned_to;
+    if (deliveryDay) customer.deliveryDay = deliveryDay;
 
     const updatedCustomer = await customer.save();
     res.json(updatedCustomer);
@@ -105,6 +75,28 @@ router.delete("/:id", async (req, res) => {
 
     await customer.remove();
     res.json({ message: "Customer deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Route to get specific customers based on assigned_to and deliveryDay
+router.get("/get-order", async (req, res) => {
+  const { assigned_to, deliveryDay } = req.body;
+
+  if (!assigned_to || !deliveryDay) {
+    return res
+      .status(400)
+      .json({ message: "Please provide both assigned_to and deliveryDay" });
+  }
+
+  try {
+    const customers = await Customer.find({
+      assigned_to: assigned_to,
+      deliveryDay: deliveryDay,
+    }).lean();
+
+    res.json(customers);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

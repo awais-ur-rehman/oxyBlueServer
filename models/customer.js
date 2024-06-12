@@ -11,10 +11,14 @@ const customerSchema = new Schema({
   name: { type: String, required: true },
   phone_number: { type: String, required: true },
   address: { type: addressSchema, required: true },
-  bottles_to_be_delivered: { type: Number, required: true },
-  bottles_to_get: { type: Number, required: true },
-  coupon: { type: Boolean, required: true },
-  bill: { type: Number, required: true },
+  assigned_to: {
+    type: String,
+    required: true,
+  },
+  deliveryDay: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Customer", customerSchema);
