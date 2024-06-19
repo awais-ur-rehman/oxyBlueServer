@@ -1,16 +1,18 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const app = express();
 const port = process.env.PORT || 8080;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 // MongoDB Connection
 const dbUrl =
-  "mongodb+srv://awaisurrehman:RealMadrid@mongodb.uk7fwy7.mongodb.net/OculaCare?retryWrites=true&w=majority&appName=MongoDB";
+  "mongodb+srv://awaisurrehman:RealMadrid@mongodb.uk7fwy7.mongodb.net/OxyBlue?retryWrites=true&w=majority&appName=MongoDB";
 mongoose
   .connect(dbUrl)
   .then(() => console.log("MongoDB connected"))
@@ -18,12 +20,7 @@ mongoose
 
 // Routes
 const expenseRoutes = require("./routes/expenses");
-const customerRoutes = require("./routes/customers");
-const riderRoutes = require("./routes/riders");
-
 app.use("/expenses", expenseRoutes);
-app.use("/customers", customerRoutes);
-app.use("/riders", riderRoutes);
 
 // Start the server
 app.listen(port, () => {

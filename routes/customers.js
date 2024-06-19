@@ -95,6 +95,7 @@ router.get("/get-order", async (req, res) => {
       assigned_to: assigned_to,
       deliveryDay: deliveryDay,
     }).lean();
+    console.log(customers);
     res.status(200).json(customers);
   } catch (err) {
     res.status(500).json({ message: err.message });
