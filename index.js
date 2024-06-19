@@ -20,7 +20,9 @@ mongoose
 
 // Routes
 const expenseRoutes = require("./routes/expenses");
+const ridersRoutes = require("./routes/riders");
 app.use("/expenses", expenseRoutes);
+app.use("/riders", ridersRoutes);
 
 // Start the server
 app.listen(port, () => {
