@@ -11,6 +11,7 @@ const customerSchema = new Schema({
   name: { type: String, required: true },
   phone_number: { type: String, required: true },
   address: { type: addressSchema, required: true },
+  balance: { type: Number, required: true },
   assigned_to: {
     type: String,
     required: true,

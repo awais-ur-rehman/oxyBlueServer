@@ -18,9 +18,17 @@ router.get("/", async (req, res) => {
 
 // Route to add a new customer
 router.post("/add-customer", async (req, res) => {
-  const { name, phone_number, address, assigned_to, deliveryDay } = req.body;
+  const { name, phone_number, address, balance, assigned_to, deliveryDay } =
+    req.body;
 
-  if (!name || !phone_number || !address || !assigned_to || !deliveryDay) {
+  if (
+    !name ||
+    !phone_number ||
+    !address ||
+    !balance ||
+    !assigned_to ||
+    !deliveryDay
+  ) {
     return res
       .status(400)
       .json({ message: "Please provide all required fields" });
@@ -30,6 +38,7 @@ router.post("/add-customer", async (req, res) => {
     name,
     phone_number,
     address,
+    balance,
     assigned_to,
     deliveryDay,
   });
@@ -44,7 +53,8 @@ router.post("/add-customer", async (req, res) => {
 
 // Route to update a customer
 router.put("/:id", async (req, res) => {
-  const { name, phone_number, address, assigned_to, deliveryDay } = req.body;
+  const { name, phone_number, address, balance, assigned_to, deliveryDay } =
+    req.body;
 
   try {
     const customer = await Customer.findById(req.params.id);
@@ -55,6 +65,7 @@ router.put("/:id", async (req, res) => {
     if (name) customer.name = name;
     if (phone_number) customer.phone_number = phone_number;
     if (address) customer.address = address;
+    if (balance) balance.customer = balance;
     if (assigned_to) customer.assigned_to = assigned_to;
     if (deliveryDay) customer.deliveryDay = deliveryDay;
 

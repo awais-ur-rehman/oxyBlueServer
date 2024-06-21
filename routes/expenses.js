@@ -53,7 +53,6 @@ router.get("/category-exp", async (req, res) => {
   }
 });
 
-// Route to get expenses for a specific rider
 router.get("/rider-exp", async (req, res) => {
   const { added_by } = req.query;
   try {
