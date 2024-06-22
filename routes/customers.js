@@ -25,7 +25,10 @@ router.post("/add-customer", async (req, res) => {
     !name ||
     !phone_number ||
     !address ||
-    !balance ||
+    !address.street ||
+    !address.precinct_no ||
+    !address.house_no ||
+    balance === undefined ||
     !assigned_to ||
     !deliveryDay
   ) {
@@ -37,8 +40,12 @@ router.post("/add-customer", async (req, res) => {
   const customer = new Customer({
     name,
     phone_number,
-    address,
-    balance,
+    address: {
+      street: address.street,
+      precinct_no: address.precinct_no,
+      house_no: address.house_no,
+    },
+    balance: parseFloat(balance),
     assigned_to,
     deliveryDay,
   });
