@@ -15,11 +15,11 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 // Route to add a new rider
 router.post("/add-rider", async (req, res) => {
   const {
     name,
+    password,
     phone_number,
     vehicle_type,
     license_plate,
@@ -29,6 +29,7 @@ router.post("/add-rider", async (req, res) => {
 
   if (
     !name ||
+    !password ||
     !phone_number ||
     !vehicle_type ||
     !license_plate ||
@@ -42,6 +43,7 @@ router.post("/add-rider", async (req, res) => {
 
   const rider = new Rider({
     name,
+    password, // Include password in the Rider creation
     phone_number,
     vehicle_type,
     license_plate,
