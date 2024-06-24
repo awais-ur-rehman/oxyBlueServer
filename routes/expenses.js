@@ -43,6 +43,26 @@ router.get("/view", async (req, res) => {
   }
 });
 
+// view only selected expenses
+router.get("/view-selected", async (req, res) => {
+  const { added_by } = req.query;
+  try {
+    const expenses = await Expense.find({
+      added_by: added_by,
+    })
+      .select("-img")
+      .lean(); // Exclude the image field
+    const formattedExpenses = expenses.map((expense) => ({
+      ...expense,
+      _id: expense._id.toString(),
+    }));
+
+    res.json(formattedExpenses);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Route to get expenses with category "Rashan Exp."
 router.get("/category-exp", async (req, res) => {
   try {
