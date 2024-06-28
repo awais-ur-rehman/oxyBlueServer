@@ -12,7 +12,7 @@ router.post("/add", async (req, res) => {
   }
 
   const expense = new Expense({
-    date: new Date(date),
+    date: date,
     amount: parseFloat(amount),
     expense_category,
     comment,
