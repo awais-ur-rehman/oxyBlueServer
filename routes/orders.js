@@ -25,7 +25,7 @@ router.post("/add", async (req, res) => {
     return res.status(400).json({ message: "Incomplete Information" });
   }
 
-  const order = new Order({
+  const order = new Orders({
     customer_name,
     date: date,
     delivered_bottles: delivered_bottles,
@@ -74,3 +74,5 @@ router.get("/customer/:customer", async (req, res) => {
     res.status(401).json({ message: "Error fetching orders" });
   }
 });
+
+module.exports = router;
