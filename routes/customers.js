@@ -98,20 +98,19 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Route to get specific customers based on assigned_to and deliveryDay
-router.get("/get-order", async (req, res) => {
-  const { assigned_to, deliveryDay } = req.query;
-
-  if (!assigned_to || !deliveryDay) {
+// Route to get specific customers based on name containing the provided name
+router.get("/get-customer", async (req, res) => {
+  const { name } = req.query;
+  console.log(name);
+  if (!name) {
     return res
       .status(400)
-      .json({ message: "Please provide both assigned_to and deliveryDay" });
+      .json({ message: "Please provide name of the customer" });
   }
 
   try {
     const customers = await Customer.find({
-      assigned_to: assigned_to,
-      deliveryDay: deliveryDay,
+      name: { $regex: name, $options: "i" }, // case-insensitive match
     }).lean();
     console.log(customers);
     res.status(200).json(customers);
