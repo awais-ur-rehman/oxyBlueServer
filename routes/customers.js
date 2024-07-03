@@ -99,6 +99,24 @@ router.delete("/:id", async (req, res) => {
 });
 
 // Route to get specific customers based on name containing the provided name
+router.get("/get-order", async (req, res) => {
+  const { assigned_to, deliveryDay } = req.query;
+  if (!assigned_to || deliveryDay) {
+    return res.status(400).json({ message: "Please provide required fields" });
+  }
+  try {
+    const customers = await Customer.find({
+      deliveryDay: deliveryDay,
+      assigned_to: assigned_to,
+    }).lean();
+    console.log(customers);
+    res.status(200).json(customers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Route to get specific customers based on name containing the provided name
 router.get("/get-customer", async (req, res) => {
   const { name } = req.query;
   console.log(name);
