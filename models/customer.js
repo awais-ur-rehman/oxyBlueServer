@@ -20,6 +20,9 @@ const customerSchema = new Schema({
     type: String,
     required: true,
   },
+  coupon: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("Customer", customerSchema);

@@ -18,8 +18,15 @@ router.get("/", async (req, res) => {
 
 // Route to add a new customer
 router.post("/add-customer", async (req, res) => {
-  const { name, phone_number, address, balance, assigned_to, deliveryDay } =
-    req.body;
+  const {
+    name,
+    phone_number,
+    address,
+    balance,
+    assigned_to,
+    deliveryDay,
+    coupon,
+  } = req.body;
 
   if (
     !name ||
@@ -30,7 +37,8 @@ router.post("/add-customer", async (req, res) => {
     !address.house_no ||
     balance === undefined ||
     !assigned_to ||
-    !deliveryDay
+    !deliveryDay ||
+    !coupon
   ) {
     return res
       .status(400)
@@ -48,6 +56,7 @@ router.post("/add-customer", async (req, res) => {
     balance: parseFloat(balance),
     assigned_to,
     deliveryDay,
+    coupon,
   });
 
   try {
@@ -60,8 +69,15 @@ router.post("/add-customer", async (req, res) => {
 
 // Route to update a customer
 router.put("/:id", async (req, res) => {
-  const { name, phone_number, address, balance, assigned_to, deliveryDay } =
-    req.body;
+  const {
+    name,
+    phone_number,
+    address,
+    balance,
+    assigned_to,
+    deliveryDay,
+    coupon,
+  } = req.body;
 
   try {
     const customer = await Customer.findById(req.params.id);
@@ -75,6 +91,7 @@ router.put("/:id", async (req, res) => {
     if (balance) balance.customer = balance;
     if (assigned_to) customer.assigned_to = assigned_to;
     if (deliveryDay) customer.deliveryDay = deliveryDay;
+    if (coupon) customer.coupon = coupon;
 
     const updatedCustomer = await customer.save();
     res.json(updatedCustomer);
