@@ -101,7 +101,7 @@ router.delete("/:id", async (req, res) => {
 // Route to get specific customers based on name containing the provided name
 router.get("/get-order", async (req, res) => {
   const { assigned_to, deliveryDay } = req.query;
-  if (!assigned_to || deliveryDay) {
+  if (!assigned_to || !deliveryDay) {
     return res.status(400).json({ message: "Please provide required fields" });
   }
   try {
