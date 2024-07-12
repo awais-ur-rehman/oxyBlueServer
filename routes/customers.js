@@ -115,7 +115,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Route to get specific customers based on name containing the provided name
+// Route to get specific customers
 router.get("/get-order", async (req, res) => {
   const { assigned_to, deliveryDay } = req.query;
   if (!assigned_to || !deliveryDay) {
@@ -134,20 +134,44 @@ router.get("/get-order", async (req, res) => {
 });
 
 // Route to get specific customers based on name containing the provided name
+// router.get("/get-customer", async (req, res) => {
+//   const { name } = req.query;
+//   console.log(name);
+//   if (!name) {
+//     return res
+//       .status(400)
+//       .json({ message: "Please provide name of the customer" });
+//   }
+
+//   try {
+//     const customers = await Customer.find({
+//       name: { $regex: name, $options: "i" }, // case-insensitive match
+//     }).lean();
+//     console.log(customers);
+//     res.status(200).json(customers);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
+
 router.get("/get-customer", async (req, res) => {
-  const { name } = req.query;
-  console.log(name);
-  if (!name) {
-    return res
-      .status(400)
-      .json({ message: "Please provide name of the customer" });
+  const { query } = req.query;
+  console.log({ query });
+
+  if (!query) {
+    return res.status(400).json({ message: "Please provide search criteria" });
   }
 
   try {
     const customers = await Customer.find({
-      name: { $regex: name, $options: "i" }, // case-insensitive match
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { "address.precinct_no": { $regex: query, $options: "i" } },
+        { "address.street": { $regex: query, $options: "i" } },
+        { "address.house_no": { $regex: query, $options: "i" } },
+      ],
     }).lean();
-    console.log(customers);
+
     res.status(200).json(customers);
   } catch (err) {
     res.status(500).json({ message: err.message });
