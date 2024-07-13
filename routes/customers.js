@@ -155,20 +155,20 @@ router.get("/get-order", async (req, res) => {
 // });
 
 router.get("/get-customer", async (req, res) => {
-  const { query } = req.query;
-  console.log({ query });
+  const { name } = req.query;
+  console.log({ name });
 
-  if (!query) {
+  if (!name) {
     return res.status(400).json({ message: "Please provide search criteria" });
   }
 
   try {
     const customers = await Customer.find({
       $or: [
-        { name: { $regex: query, $options: "i" } },
-        { "address.precinct_no": { $regex: query, $options: "i" } },
-        { "address.street": { $regex: query, $options: "i" } },
-        { "address.house_no": { $regex: query, $options: "i" } },
+        { name: { $regex: name, $options: "i" } },
+        { "address.precinct_no": { $regex: name, $options: "i" } },
+        { "address.street": { $regex: name, $options: "i" } },
+        { "address.house_no": { $regex: name, $options: "i" } },
       ],
     }).lean();
 
