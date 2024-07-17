@@ -43,7 +43,7 @@ router.post("/add-rider", async (req, res) => {
 
   const rider = new Rider({
     name,
-    password, // Include password in the Rider creation
+    password,
     phone_number,
     vehicle_type,
     license_plate,
@@ -69,6 +69,7 @@ router.put("/:id", async (req, res) => {
 
     const {
       name,
+      password,
       phone_number,
       vehicle_type,
       license_plate,
@@ -77,6 +78,7 @@ router.put("/:id", async (req, res) => {
     } = req.body;
 
     if (name) rider.name = name;
+    if (password) rider.password = password;
     if (phone_number) rider.phone_number = phone_number;
     if (vehicle_type) rider.vehicle_type = vehicle_type;
     if (license_plate) rider.license_plate = license_plate;
