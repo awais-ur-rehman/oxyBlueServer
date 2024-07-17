@@ -30,14 +30,42 @@ router.post("/add", async (req, res) => {
 });
 
 // Route to get all expenses
+// router.get("/view", async (req, res) => {
+//   try {
+//     const expenses = await Expense.find().lean();
+//     const formattedExpenses = expenses.map((expense) => ({
+//       ...expense,
+//       _id: expense._id.toString(),
+//     }));
+//     res.json(formattedExpenses);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
+
+// Route to get all expenses with pagination
 router.get("/view", async (req, res) => {
+  console.log("stared");
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
   try {
-    const expenses = await Expense.find().lean();
+    const expenses = await Expense.find().skip(skip).limit(limit).lean();
+    const totalExpenses = await Expense.countDocuments();
+    const totalPages = Math.ceil(totalExpenses / limit);
+
     const formattedExpenses = expenses.map((expense) => ({
       ...expense,
       _id: expense._id.toString(),
     }));
-    res.json(formattedExpenses);
+
+    res.json({
+      expenses: formattedExpenses,
+      totalPages,
+      currentPage: page,
+    });
+    console.log(res);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
