@@ -75,4 +75,25 @@ router.get("/customer/:customer", async (req, res) => {
   }
 });
 
+// get order by customer and month
+router.get("/customer/:customer/month/:month", async (req, res) => {
+  const { customer, month } = req.params;
+  console.log(req.params);
+  try {
+    let orders;
+    if (month === "13") {
+      orders = await Orders.find({ customer_name: customer });
+    } else {
+      const regex = new RegExp(`-${month.padStart(2, "0")}-`);
+      orders = await Orders.find({
+        customer_name: customer,
+        date: { $regex: regex },
+      });
+    }
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(401).json({ message: "Error fetching orders" });
+  }
+});
+
 module.exports = router;
