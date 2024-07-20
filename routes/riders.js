@@ -77,6 +77,8 @@ router.put("/:id", async (req, res) => {
       rating,
     } = req.body;
 
+    const originalName = rider.name;
+
     if (name) rider.name = name;
     if (password) rider.password = password;
     if (phone_number) rider.phone_number = phone_number;
@@ -87,6 +89,15 @@ router.put("/:id", async (req, res) => {
     if (rating !== undefined) rider.rating = parseFloat(rating);
 
     const updatedRider = await rider.save();
+
+    // Update the 'assigned_to' field in Customer collection if name was updated
+    if (name && name !== originalName) {
+      await Customer.updateMany(
+        { assigned_to: originalName },
+        { assigned_to: name }
+      );
+    }
+
     res.json(updatedRider);
   } catch (err) {
     res.status(500).json({ message: err.message });

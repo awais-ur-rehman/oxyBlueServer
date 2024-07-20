@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Orders = require("../models/order");
 
-// add order
+// Route to add an order
 router.post("/add", async (req, res) => {
   const {
     customer_name,
@@ -13,6 +13,7 @@ router.post("/add", async (req, res) => {
     paid_amount,
     coupon,
   } = req.body;
+
   if (
     !customer_name ||
     !date ||
@@ -34,21 +35,40 @@ router.post("/add", async (req, res) => {
     paid_amount: paid_amount,
     coupon: coupon,
   });
+
   try {
+    // Save the new order
     const newOrder = await order.save();
+
+    // Calculate the remaining amount
+    const remainingAmount = total_amount - paid_amount;
+
+    if (remainingAmount !== 0) {
+      // Find the customer by name and update their balance
+      const customer = await Customer.findOne({ name: customer_name });
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+
+      customer.balance += remainingAmount;
+      await customer.save();
+    }
+
     res.status(201).json(newOrder);
     console.log(newOrder);
   } catch (error) {
-    res.status(401).json({ message: "Error creating order" });
+    res.status(500).json({ message: "Error creating order" });
   }
 });
 
 // view order
 router.get("/view", async (req, res) => {
+  console.log("starting");
   try {
     const orders = await Orders.find();
     res.status(200).json(orders);
   } catch (error) {
+    console.log(error);
     res.status(401).json({ message: "Error fetching orders" });
   }
 });
