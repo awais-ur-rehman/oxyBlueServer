@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Rider = require("../models/rider");
+const Customer = require("../models/customer");
 
 // Route to get all riders
 router.get("/", async (req, res) => {
