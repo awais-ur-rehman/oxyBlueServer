@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Orders = require("../models/order");
 const Customer = require("../models/customer");
+const Rider = require("../models/rider");
 
 // Route to add an order
 router.post("/add", async (req, res) => {
@@ -44,15 +45,25 @@ router.post("/add", async (req, res) => {
     // Calculate the remaining amount
     const remainingAmount = total_amount - paid_amount;
 
-    if (remainingAmount !== 0) {
-      // Find the customer by name and update their balance
-      const customer = await Customer.findOne({ name: customer_name });
-      if (!customer) {
-        return res.status(404).json({ message: "Customer not found" });
-      }
+    // Find the customer by name
+    const customer = await Customer.findOne({ name: customer_name });
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
 
+    // Update the customer's balance if there is a remaining amount
+    if (remainingAmount !== 0) {
       customer.balance += remainingAmount;
       await customer.save();
+    }
+
+    // Find the rider assigned to this customer and increment deliveries_completed
+    const rider = await Rider.findOne({ name: customer.assigned_to });
+    if (rider) {
+      rider.deliveries_completed += 1;
+      await rider.save();
+    } else {
+      console.log(`Rider assigned to ${customer_name} not found.`);
     }
 
     res.status(201).json(newOrder);
