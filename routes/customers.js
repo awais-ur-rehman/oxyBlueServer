@@ -32,9 +32,7 @@ router.post("/add-customer", async (req, res) => {
     !name ||
     !phone_number ||
     !address ||
-    !address.street ||
     !address.precinct_no ||
-    !address.house_no ||
     balance === undefined ||
     !assigned_to ||
     !deliveryDay ||
@@ -52,6 +50,11 @@ router.post("/add-customer", async (req, res) => {
       street: address.street,
       precinct_no: address.precinct_no,
       house_no: address.house_no,
+      road: address.road,
+      tower: address.tower,
+      apartment: address.apartment,
+      buildingName: address.buildingName,
+      office: address.office,
     },
     balance: parseFloat(balance),
     assigned_to,
@@ -87,8 +90,23 @@ router.put("/:id", async (req, res) => {
 
     if (name) customer.name = name;
     if (phone_number) customer.phone_number = phone_number;
-    if (address) customer.address = address;
-    if (balance) balance.customer = balance;
+    if (address) {
+      if (address.street !== undefined)
+        customer.address.street = address.street;
+      if (address.precinct_no !== undefined)
+        customer.address.precinct_no = address.precinct_no;
+      if (address.house_no !== undefined)
+        customer.address.house_no = address.house_no;
+      if (address.road !== undefined) customer.address.road = address.road;
+      if (address.tower !== undefined) customer.address.tower = address.tower;
+      if (address.apartment !== undefined)
+        customer.address.apartment = address.apartment;
+      if (address.buildingName !== undefined)
+        customer.address.buildingName = address.buildingName;
+      if (address.office !== undefined)
+        customer.address.office = address.office;
+    }
+    if (balance !== undefined) customer.balance = balance;
     if (assigned_to) customer.assigned_to = assigned_to;
     if (deliveryDay) customer.deliveryDay = deliveryDay;
     if (coupon) customer.coupon = coupon;
@@ -134,26 +152,6 @@ router.get("/get-order", async (req, res) => {
 });
 
 // Route to get specific customers based on name containing the provided name
-// router.get("/get-customer", async (req, res) => {
-//   const { name } = req.query;
-//   console.log(name);
-//   if (!name) {
-//     return res
-//       .status(400)
-//       .json({ message: "Please provide name of the customer" });
-//   }
-
-//   try {
-//     const customers = await Customer.find({
-//       name: { $regex: name, $options: "i" }, // case-insensitive match
-//     }).lean();
-//     console.log(customers);
-//     res.status(200).json(customers);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// });
-
 router.get("/get-customer", async (req, res) => {
   const { name } = req.query;
   console.log({ name });
@@ -169,6 +167,11 @@ router.get("/get-customer", async (req, res) => {
         { "address.precinct_no": { $regex: name, $options: "i" } },
         { "address.street": { $regex: name, $options: "i" } },
         { "address.house_no": { $regex: name, $options: "i" } },
+        { "address.road": { $regex: name, $options: "i" } },
+        { "address.tower": { $regex: name, $options: "i" } },
+        { "address.apartment": { $regex: name, $options: "i" } },
+        { "address.buildingName": { $regex: name, $options: "i" } },
+        { "address.office": { $regex: name, $options: "i" } },
       ],
     }).lean();
 
