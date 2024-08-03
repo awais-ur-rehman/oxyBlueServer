@@ -49,7 +49,7 @@ router.post("/add", async (req, res) => {
 
       const updatedOrder = await existingOrder.save();
       console.log("Order updated:", updatedOrder);
-      res.status(200).json(updatedOrder);
+      res.status(201).json(updatedOrder);
     } else {
       // If no such order exists, or the conditions are not met, create a new order
       const newOrder = new Orders({
