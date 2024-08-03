@@ -9,66 +9,53 @@ router.post("/add", async (req, res) => {
   const {
     customer_name,
     date,
-    delivered_bottles,
+    delivered_bottles, // Expect these could be zero
     received_bottles,
     total_amount,
     paid_amount,
-    coupon,
+    coupon = "", // Default empty if not provided
+    order_status,
   } = req.body;
 
   if (
     !customer_name ||
     !date ||
-    !delivered_bottles ||
-    !received_bottles ||
-    !total_amount ||
-    !paid_amount ||
-    !coupon
+    order_status == null || // Ensure only truly required fields are checked for existence
+    delivered_bottles == null ||
+    received_bottles == null || // Check explicitly for null to allow zero
+    total_amount == null ||
+    paid_amount == null
   ) {
+    console.log("Missing or invalid fields:", req.body);
     return res.status(400).json({ message: "Incomplete Information" });
   }
 
+  // Find the customer by name to handle balance updates or identify unavailability
+  const customer = await Customer.findOne({ name: customer_name });
+  if (!customer) {
+    console.log(`Customer not found: ${customer_name}`);
+    return res.status(404).json({ message: "Customer not found" });
+  }
+
+  // Prepare the order object
   const order = new Orders({
     customer_name,
-    date: date,
-    delivered_bottles: delivered_bottles,
-    received_bottles: received_bottles,
-    total_amount: total_amount,
-    paid_amount: paid_amount,
-    coupon: coupon,
+    date,
+    delivered_bottles,
+    received_bottles,
+    total_amount,
+    paid_amount,
+    coupon,
+    order_status,
   });
 
+  // Save the order and handle the response
   try {
-    // Save the new order
     const newOrder = await order.save();
-
-    // Calculate the remaining amount
-    const remainingAmount = total_amount - paid_amount;
-
-    // Find the customer by name
-    const customer = await Customer.findOne({ name: customer_name });
-    if (!customer) {
-      return res.status(404).json({ message: "Customer not found" });
-    }
-
-    // Update the customer's balance if there is a remaining amount
-    if (remainingAmount !== 0) {
-      customer.balance += remainingAmount;
-      await customer.save();
-    }
-
-    // Find the rider assigned to this customer and increment deliveries_completed
-    const rider = await Rider.findOne({ name: customer.assigned_to });
-    if (rider) {
-      rider.deliveries_completed += 1;
-      await rider.save();
-    } else {
-      console.log(`Rider assigned to ${customer_name} not found.`);
-    }
-
+    console.log("Order saved:", newOrder);
     res.status(201).json(newOrder);
-    console.log(newOrder);
   } catch (error) {
+    console.log(`Error creating order: ${error}`);
     res.status(500).json({ message: "Error creating order" });
   }
 });

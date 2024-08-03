@@ -8,27 +8,32 @@ const orderSchema = new Schema({
   },
   date: {
     type: String,
-    require: true,
+    required: true,
   },
   delivered_bottles: {
     type: Number,
-    require: true,
+    required: true,
   },
   received_bottles: {
     type: Number,
-    require: true,
+    required: true,
   },
   total_amount: {
     type: Number,
-    require: true,
+    required: true,
   },
   paid_amount: {
     type: Number,
-    require: true,
+    required: true,
   },
   coupon: {
     type: String,
-    require: true,
+    required: true,
+  },
+  order_status: {
+    type: String,
+    enum: ["Completed", "Not Available"],
+    default: "Completed",
   },
 });
 
