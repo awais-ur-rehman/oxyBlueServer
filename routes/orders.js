@@ -4,59 +4,72 @@ const Orders = require("../models/order");
 const Customer = require("../models/customer");
 const Rider = require("../models/rider");
 
-// Route to add an order
+// Route to add or update an order
 router.post("/add", async (req, res) => {
   const {
-    customer_name,
-    date,
-    delivered_bottles, // Expect these could be zero
-    received_bottles,
-    total_amount,
-    paid_amount,
-    coupon = "", // Default empty if not provided
-    order_status,
-  } = req.body;
-
-  if (
-    !customer_name ||
-    !date ||
-    order_status == null || // Ensure only truly required fields are checked for existence
-    delivered_bottles == null ||
-    received_bottles == null || // Check explicitly for null to allow zero
-    total_amount == null ||
-    paid_amount == null
-  ) {
-    console.log("Missing or invalid fields:", req.body);
-    return res.status(400).json({ message: "Incomplete Information" });
-  }
-
-  // Find the customer by name to handle balance updates or identify unavailability
-  const customer = await Customer.findOne({ name: customer_name });
-  if (!customer) {
-    console.log(`Customer not found: ${customer_name}`);
-    return res.status(404).json({ message: "Customer not found" });
-  }
-
-  // Prepare the order object
-  const order = new Orders({
     customer_name,
     date,
     delivered_bottles,
     received_bottles,
     total_amount,
     paid_amount,
-    coupon,
+    coupon = "", // Default to empty if not provided
     order_status,
-  });
+  } = req.body;
 
-  // Save the order and handle the response
+  if (
+    !customer_name ||
+    !date ||
+    delivered_bottles == null ||
+    received_bottles == null ||
+    total_amount == null ||
+    paid_amount == null ||
+    order_status == null
+  ) {
+    console.log("Missing or invalid fields:", req.body);
+    return res.status(400).json({ message: "Incomplete Information" });
+  }
+
   try {
-    const newOrder = await order.save();
-    console.log("Order saved:", newOrder);
-    res.status(201).json(newOrder);
+    // First, try to find an existing order with the same customer name and date
+    const existingOrder = await Orders.findOne({ customer_name, date });
+
+    if (
+      existingOrder &&
+      existingOrder.order_status === "Not Available" &&
+      order_status === "Completed"
+    ) {
+      // If found and the status is "Not Available", update the existing order with new details
+      existingOrder.delivered_bottles = delivered_bottles;
+      existingOrder.received_bottles = received_bottles;
+      existingOrder.total_amount = total_amount;
+      existingOrder.paid_amount = paid_amount;
+      existingOrder.coupon = coupon;
+      existingOrder.order_status = order_status;
+
+      const updatedOrder = await existingOrder.save();
+      console.log("Order updated:", updatedOrder);
+      res.status(200).json(updatedOrder);
+    } else {
+      // If no such order exists, or the conditions are not met, create a new order
+      const newOrder = new Orders({
+        customer_name,
+        date,
+        delivered_bottles,
+        received_bottles,
+        total_amount,
+        paid_amount,
+        coupon,
+        order_status,
+      });
+
+      const savedOrder = await newOrder.save();
+      console.log("New order saved:", savedOrder);
+      res.status(201).json(savedOrder);
+    }
   } catch (error) {
-    console.log(`Error creating order: ${error}`);
-    res.status(500).json({ message: "Error creating order" });
+    console.log(`Error creating or updating order: ${error}`);
+    res.status(500).json({ message: "Error processing your request" });
   }
 });
 
