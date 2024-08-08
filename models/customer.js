@@ -20,6 +20,7 @@ const customerSchema = new Schema({
   assigned_to: { type: String, required: true },
   deliveryDay: { type: String, required: true },
   coupon: { type: String },
+  numberOfCoupon: { type: Number },
 });
 
 module.exports = mongoose.model("Customer", customerSchema);

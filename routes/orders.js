@@ -15,6 +15,7 @@ router.post("/add", async (req, res) => {
     paid_amount,
     img = "",
     order_status,
+    coupon_received,
   } = req.body;
 
   if (
@@ -24,7 +25,8 @@ router.post("/add", async (req, res) => {
     received_bottles == null ||
     total_amount == null ||
     paid_amount == null ||
-    order_status == null
+    order_status == null ||
+    coupon_received == null
   ) {
     console.log("Missing or invalid fields:", req.body);
     return res.status(400).json({ message: "Incomplete Information" });
@@ -46,6 +48,7 @@ router.post("/add", async (req, res) => {
       existingOrder.paid_amount = paid_amount;
       existingOrder.img = img;
       existingOrder.order_status = order_status;
+      existingOrder.coupon_received = coupon_received;
 
       const updatedOrder = await existingOrder.save();
       console.log("Order updated:", updatedOrder);
@@ -61,6 +64,7 @@ router.post("/add", async (req, res) => {
         paid_amount,
         img,
         order_status,
+        coupon_received,
       });
 
       const savedOrder = await newOrder.save();
@@ -73,9 +77,8 @@ router.post("/add", async (req, res) => {
   }
 });
 
-// view order
+// View all orders
 router.get("/view", async (req, res) => {
-  console.log("starting");
   try {
     const orders = await Orders.find();
     res.status(200).json(orders);
@@ -85,7 +88,7 @@ router.get("/view", async (req, res) => {
   }
 });
 
-// get order by month
+// Get orders by month
 router.get("/month/:month", async (req, res) => {
   const month = req.params.month;
   try {
@@ -96,7 +99,7 @@ router.get("/month/:month", async (req, res) => {
   }
 });
 
-// get order by customer
+// Get orders by customer
 router.get("/customer/:customer", async (req, res) => {
   const customer = req.params.customer;
   try {
@@ -107,7 +110,7 @@ router.get("/customer/:customer", async (req, res) => {
   }
 });
 
-// get order by customer and month
+// Get orders by customer and month
 router.get("/customer/:customer/month/:month", async (req, res) => {
   const { customer, month } = req.params;
   console.log(req.params);

@@ -181,4 +181,24 @@ router.get("/get-customer", async (req, res) => {
   }
 });
 
+// Route to get customer data
+router.get("/get-customers-data", async (req, res) => {
+  console.log("entring");
+  try {
+    const customers = await Customer.find(
+      {},
+      "name phone_number address balance"
+    ).lean();
+    const customerData = customers.map((customer) => ({
+      name: customer.name,
+      phone_number: customer.phone_number,
+      address: customer.address,
+      balance: customer.balance,
+    }));
+    res.json(customerData);
+  } catch (error) {
+    console.error("Error fetching customer data:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 module.exports = router;
