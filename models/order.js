@@ -26,9 +26,8 @@ const orderSchema = new Schema({
     type: Number,
     required: true,
   },
-  coupon: {
+  img: {
     type: String,
-    required: true,
   },
   order_status: {
     type: String,

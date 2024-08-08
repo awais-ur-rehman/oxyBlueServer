@@ -13,7 +13,7 @@ router.post("/add", async (req, res) => {
     received_bottles,
     total_amount,
     paid_amount,
-    coupon = "", // Default to empty if not provided
+    img = "",
     order_status,
   } = req.body;
 
@@ -44,7 +44,7 @@ router.post("/add", async (req, res) => {
       existingOrder.received_bottles = received_bottles;
       existingOrder.total_amount = total_amount;
       existingOrder.paid_amount = paid_amount;
-      existingOrder.coupon = coupon;
+      existingOrder.img = img;
       existingOrder.order_status = order_status;
 
       const updatedOrder = await existingOrder.save();
@@ -59,7 +59,7 @@ router.post("/add", async (req, res) => {
         received_bottles,
         total_amount,
         paid_amount,
-        coupon,
+        img,
         order_status,
       });
 
