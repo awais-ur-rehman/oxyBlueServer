@@ -25,10 +25,10 @@ router.post("/add-customer", async (req, res) => {
     balance,
     assigned_to,
     deliveryDay,
+    billing_plan,
     coupon,
   } = req.body;
 
-  // Check if required fields are present
   if (
     !name ||
     !phone_number ||
@@ -37,6 +37,7 @@ router.post("/add-customer", async (req, res) => {
     balance === undefined ||
     !assigned_to ||
     !deliveryDay ||
+    !billing_plan ||
     !coupon
   ) {
     return res
@@ -44,7 +45,6 @@ router.post("/add-customer", async (req, res) => {
       .json({ message: "Please provide all required fields" });
   }
 
-  // Create a new customer object with all fields
   const customer = new Customer({
     name,
     phone_number,
@@ -60,6 +60,7 @@ router.post("/add-customer", async (req, res) => {
     },
     balance: parseFloat(balance),
     assigned_to,
+    billing_plan,
     deliveryDay,
     coupon,
   });
@@ -81,6 +82,7 @@ router.put("/:id", async (req, res) => {
     balance,
     assigned_to,
     deliveryDay,
+    billing_plan,
     coupon,
   } = req.body;
 
@@ -93,24 +95,13 @@ router.put("/:id", async (req, res) => {
     if (name) customer.name = name;
     if (phone_number) customer.phone_number = phone_number;
     if (address) {
-      if (address.street !== undefined)
-        customer.address.street = address.street;
-      if (address.precinct_no !== undefined)
-        customer.address.precinct_no = address.precinct_no;
-      if (address.house_no !== undefined)
-        customer.address.house_no = address.house_no;
-      if (address.road !== undefined) customer.address.road = address.road;
-      if (address.tower !== undefined) customer.address.tower = address.tower;
-      if (address.apartment !== undefined)
-        customer.address.apartment = address.apartment;
-      if (address.buildingName !== undefined)
-        customer.address.buildingName = address.buildingName;
       if (address.office !== undefined)
         customer.address.office = address.office;
     }
-    if (balance !== undefined) customer.balance = balance;
+    if (balance !== undefined) customer.balance = parseFloat(balance);
     if (assigned_to) customer.assigned_to = assigned_to;
     if (deliveryDay) customer.deliveryDay = deliveryDay;
+    if (billing_plan) customer.billing_plan = billing_plan;
     if (coupon) customer.coupon = coupon;
 
     const updatedCustomer = await customer.save();
@@ -185,17 +176,17 @@ router.get("/get-customer", async (req, res) => {
 
 // Route to get customer data
 router.get("/get-customers-data", async (req, res) => {
-  console.log("entring");
   try {
     const customers = await Customer.find(
       {},
-      "name phone_number address balance"
+      "name phone_number address balance billing_plan"
     ).lean();
     const customerData = customers.map((customer) => ({
       name: customer.name,
       phone_number: customer.phone_number,
       address: customer.address,
       balance: customer.balance,
+      billing_plan: customer.billing_plan,
     }));
     res.json(customerData);
   } catch (error) {

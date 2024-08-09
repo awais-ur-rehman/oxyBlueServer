@@ -19,6 +19,7 @@ const customerSchema = new Schema({
   balance: { type: Number, required: true },
   assigned_to: { type: String, required: true },
   deliveryDay: { type: String, required: true },
+  billing_plan: { type: String },
   coupon: { type: String },
   numberOfCoupon: { type: Number },
 });
