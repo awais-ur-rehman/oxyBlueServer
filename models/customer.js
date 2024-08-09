@@ -17,6 +17,7 @@ const customerSchema = new Schema({
   phone_number: { type: String, required: true },
   address: { type: addressSchema, required: true },
   balance: { type: Number, required: true },
+  security: { type: Number, required: true }, // New security field
   assigned_to: { type: String, required: true },
   deliveryDay: { type: String, required: true },
   billing_plan: { type: String },

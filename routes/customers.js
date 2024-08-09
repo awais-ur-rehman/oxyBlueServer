@@ -23,6 +23,7 @@ router.post("/add-customer", async (req, res) => {
     phone_number,
     address,
     balance,
+    security,
     assigned_to,
     deliveryDay,
     billing_plan,
@@ -33,9 +34,9 @@ router.post("/add-customer", async (req, res) => {
   if (
     !name ||
     !phone_number ||
-    !address ||
     !address.precinct_no ||
     balance === undefined ||
+    security === undefined || // Check for security field
     !assigned_to ||
     !deliveryDay ||
     !billing_plan ||
@@ -61,6 +62,7 @@ router.post("/add-customer", async (req, res) => {
       office: address.office,
     },
     balance: parseFloat(balance),
+    security: parseFloat(security), // Include security
     assigned_to,
     deliveryDay,
     billing_plan,
@@ -83,6 +85,7 @@ router.put("/:id", async (req, res) => {
     phone_number,
     address,
     balance,
+    security,
     assigned_to,
     deliveryDay,
     coupon,
@@ -113,10 +116,11 @@ router.put("/:id", async (req, res) => {
         customer.address.office = address.office;
     }
     if (balance !== undefined) customer.balance = balance;
+    if (security !== undefined) customer.security = security; // Update security
     if (assigned_to) customer.assigned_to = assigned_to;
     if (deliveryDay) customer.deliveryDay = deliveryDay;
     if (coupon) customer.coupon = coupon;
-    if (numberOfCoupon !== undefined) customer.numberOfCoupon = numberOfCoupon; // Update numberOfCoupon
+    if (numberOfCoupon !== undefined) customer.numberOfCoupon = numberOfCoupon;
 
     const updatedCustomer = await customer.save();
     res.json(updatedCustomer);
@@ -193,13 +197,14 @@ router.get("/get-customers-data", async (req, res) => {
   try {
     const customers = await Customer.find(
       {},
-      "name phone_number address balance billing_plan"
+      "name phone_number address balance security billing_plan" // Include security
     ).lean();
     const customerData = customers.map((customer) => ({
       name: customer.name,
       phone_number: customer.phone_number,
       address: customer.address,
       balance: customer.balance,
+      security: customer.security, // Include security
       billing_plan: customer.billing_plan,
     }));
     res.json(customerData);
