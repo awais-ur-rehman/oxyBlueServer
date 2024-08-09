@@ -34,6 +34,10 @@ const orderSchema = new Schema({
     enum: ["Completed", "Not Available"],
     default: "Completed",
   },
+  coupon_received: {
+    type: Number,
+    required: true,
+  },
 });
 
 const Orders = mongoose.model("Orders", orderSchema);

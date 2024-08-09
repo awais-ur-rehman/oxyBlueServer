@@ -14,12 +14,14 @@ router.get("/final", async (req, res) => {
       },
     ]);
 
-    const totalOrderAmount = await Orders.aggregate([
+    const totalOrderStats = await Orders.aggregate([
       {
         $group: {
           _id: null,
           totalAmount: { $sum: "$total_amount" },
           totalPaid: { $sum: "$paid_amount" },
+          totalBottlesDelivered: { $sum: "$delivered_bottles" },
+          totalBottlesReceived: { $sum: "$received_bottles" },
         },
       },
     ]);
@@ -27,15 +29,25 @@ router.get("/final", async (req, res) => {
     const totalExpenseAmount = totalExpense[0]
       ? totalExpense[0].totalAmount
       : 0;
-    const totalOrder = totalOrderAmount[0]
-      ? totalOrderAmount[0].totalAmount
+    const totalOrderAmount = totalOrderStats[0]
+      ? totalOrderStats[0].totalAmount
       : 0;
-    const totalPaid = totalOrderAmount[0] ? totalOrderAmount[0].totalPaid : 0;
+    const totalPaidAmount = totalOrderStats[0]
+      ? totalOrderStats[0].totalPaid
+      : 0;
+    const totalBottlesDelivered = totalOrderStats[0]
+      ? totalOrderStats[0].totalBottlesDelivered
+      : 0;
+    const totalBottlesReceived = totalOrderStats[0]
+      ? totalOrderStats[0].totalBottlesReceived
+      : 0;
 
     res.json({
       totalExpenseAmount,
-      totalOrderAmount: totalOrder,
-      totalPaidAmount: totalPaid,
+      totalOrderAmount,
+      totalPaidAmount,
+      totalBottlesDelivered,
+      totalBottlesReceived,
     });
     console.log(res);
   } catch (error) {

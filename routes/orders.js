@@ -33,7 +33,6 @@ router.post("/add", async (req, res) => {
   }
 
   try {
-    // First, try to find an existing order with the same customer name and date
     const existingOrder = await Orders.findOne({ customer_name, date });
 
     if (
@@ -41,7 +40,6 @@ router.post("/add", async (req, res) => {
       existingOrder.order_status === "Not Available" &&
       order_status === "Completed"
     ) {
-      // If found and the status is "Not Available", update the existing order with new details
       existingOrder.delivered_bottles = delivered_bottles;
       existingOrder.received_bottles = received_bottles;
       existingOrder.total_amount = total_amount;
@@ -54,7 +52,6 @@ router.post("/add", async (req, res) => {
       console.log("Order updated:", updatedOrder);
       res.status(201).json(updatedOrder);
     } else {
-      // If no such order exists, or the conditions are not met, create a new order
       const newOrder = new Orders({
         customer_name,
         date,
