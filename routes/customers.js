@@ -27,6 +27,7 @@ router.post("/add-customer", async (req, res) => {
     deliveryDay,
     billing_plan,
     coupon,
+    numberOfCoupon,
   } = req.body;
 
   if (
@@ -38,7 +39,8 @@ router.post("/add-customer", async (req, res) => {
     !assigned_to ||
     !deliveryDay ||
     !billing_plan ||
-    !coupon
+    !coupon ||
+    numberOfCoupon === undefined
   ) {
     return res
       .status(400)
@@ -60,9 +62,10 @@ router.post("/add-customer", async (req, res) => {
     },
     balance: parseFloat(balance),
     assigned_to,
-    billing_plan,
     deliveryDay,
+    billing_plan,
     coupon,
+    numberOfCoupon,
   });
 
   try {
@@ -82,8 +85,8 @@ router.put("/:id", async (req, res) => {
     balance,
     assigned_to,
     deliveryDay,
-    billing_plan,
     coupon,
+    numberOfCoupon,
   } = req.body;
 
   try {
@@ -91,18 +94,29 @@ router.put("/:id", async (req, res) => {
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
-
     if (name) customer.name = name;
     if (phone_number) customer.phone_number = phone_number;
     if (address) {
+      if (address.street !== undefined)
+        customer.address.street = address.street;
+      if (address.precinct_no !== undefined)
+        customer.address.precinct_no = address.precinct_no;
+      if (address.house_no !== undefined)
+        customer.address.house_no = address.house_no;
+      if (address.road !== undefined) customer.address.road = address.road;
+      if (address.tower !== undefined) customer.address.tower = address.tower;
+      if (address.apartment !== undefined)
+        customer.address.apartment = address.apartment;
+      if (address.buildingName !== undefined)
+        customer.address.buildingName = address.buildingName;
       if (address.office !== undefined)
         customer.address.office = address.office;
     }
-    if (balance !== undefined) customer.balance = parseFloat(balance);
+    if (balance !== undefined) customer.balance = balance;
     if (assigned_to) customer.assigned_to = assigned_to;
     if (deliveryDay) customer.deliveryDay = deliveryDay;
-    if (billing_plan) customer.billing_plan = billing_plan;
     if (coupon) customer.coupon = coupon;
+    if (numberOfCoupon !== undefined) customer.numberOfCoupon = numberOfCoupon; // Update numberOfCoupon
 
     const updatedCustomer = await customer.save();
     res.json(updatedCustomer);
