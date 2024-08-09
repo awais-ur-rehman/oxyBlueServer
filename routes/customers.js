@@ -28,6 +28,7 @@ router.post("/add-customer", async (req, res) => {
     coupon,
   } = req.body;
 
+  // Check if required fields are present
   if (
     !name ||
     !phone_number ||
@@ -43,6 +44,7 @@ router.post("/add-customer", async (req, res) => {
       .json({ message: "Please provide all required fields" });
   }
 
+  // Create a new customer object with all fields
   const customer = new Customer({
     name,
     phone_number,
@@ -201,4 +203,36 @@ router.get("/get-customers-data", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// Endpoint to find customers assigned to a rider but not in the provided list
+router.post("/find-missing-customers", async (req, res) => {
+  const { customers, assignedTo } = req.body;
+
+  if (!customers || !assignedTo) {
+    return res
+      .status(400)
+      .json({ message: "Please provide all required fields" });
+  }
+
+  try {
+    const customerNames = customers.map((customer) => customer.name);
+    const customerAddresses = customers.map((customer) =>
+      JSON.stringify(customer.address)
+    );
+    const customersNotInList = await Customer.find({
+      assigned_to: assignedTo,
+      $or: [
+        { name: { $nin: customerNames } },
+        {
+          address: { $nin: customerAddresses.map((addr) => JSON.parse(addr)) },
+        },
+      ],
+    }).lean();
+
+    res.status(200).json(customersNotInList);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
