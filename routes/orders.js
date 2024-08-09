@@ -33,6 +33,14 @@ router.post("/add", async (req, res) => {
   }
 
   try {
+    const customer = await Customer.findOne({ name: customer_name });
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    const newNumberOfCoupons = customer.numberOfCoupon - coupon_received;
+    customer.numberOfCoupon = newNumberOfCoupons;
+    await customer.save();
     const existingOrder = await Orders.findOne({ customer_name, date });
 
     if (
@@ -40,7 +48,6 @@ router.post("/add", async (req, res) => {
       existingOrder.order_status === "Not Available" &&
       order_status === "Completed"
     ) {
-      // Update existing order fields
       existingOrder.delivered_bottles = delivered_bottles;
       existingOrder.received_bottles = received_bottles;
       existingOrder.total_amount = total_amount;
@@ -49,20 +56,8 @@ router.post("/add", async (req, res) => {
       existingOrder.order_status = order_status;
       existingOrder.coupon_received = coupon_received;
 
-      // Update the order in the database
       const updatedOrder = await existingOrder.save();
-
-      // Find customer and update coupon count
-      const customer = await Customer.findOne({ name: customer_name });
-      if (customer) {
-        customer.numberOfCoupon = Math.max(
-          0,
-          customer.numberOfCoupon - coupon_received
-        );
-        await customer.save();
-      }
-
-      console.log("Order updated and customer coupons adjusted:", updatedOrder);
+      console.log("Order updated:", updatedOrder);
       res.status(201).json(updatedOrder);
     } else {
       const newOrder = new Orders({
@@ -77,7 +72,6 @@ router.post("/add", async (req, res) => {
         coupon_received,
       });
 
-      // Save the new order
       const savedOrder = await newOrder.save();
       console.log("New order saved:", savedOrder);
       res.status(201).json(savedOrder);
