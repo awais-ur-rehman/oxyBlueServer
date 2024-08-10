@@ -40,7 +40,6 @@ router.post("/add-customer", async (req, res) => {
       security === undefined ||
       !deliveryDay ||
       !billing_plan ||
-      !coupon ||
       numberOfCoupon === undefined
     ) {
       console.error("Validation failed. Missing required fields.");
