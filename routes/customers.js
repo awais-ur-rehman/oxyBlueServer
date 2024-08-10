@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Customer = require("../models/customer");
+const Security = require("../models/security");
 
 // Route to get all customers
 router.get("/", async (req, res) => {
@@ -18,63 +19,84 @@ router.get("/", async (req, res) => {
 
 // Route to add a new customer
 router.post("/add-customer", async (req, res) => {
-  const {
-    name,
-    phone_number,
-    address,
-    balance,
-    security,
-    assigned_to,
-    deliveryDay,
-    billing_plan,
-    coupon,
-    numberOfCoupon,
-  } = req.body;
-
-  if (
-    !name ||
-    !phone_number ||
-    !address.precinct_no ||
-    balance === undefined ||
-    security === undefined || // Check for security field
-    !assigned_to ||
-    !deliveryDay ||
-    !billing_plan ||
-    !coupon ||
-    numberOfCoupon === undefined
-  ) {
-    return res
-      .status(400)
-      .json({ message: "Please provide all required fields" });
-  }
-
-  const customer = new Customer({
-    name,
-    phone_number,
-    address: {
-      street: address.street,
-      precinct_no: address.precinct_no,
-      house_no: address.house_no,
-      road: address.road,
-      tower: address.tower,
-      apartment: address.apartment,
-      buildingName: address.buildingName,
-      office: address.office,
-    },
-    balance: parseFloat(balance),
-    security: parseFloat(security), // Include security
-    assigned_to,
-    deliveryDay,
-    billing_plan,
-    coupon,
-    numberOfCoupon,
-  });
-
   try {
+    const {
+      name,
+      phone_number,
+      address,
+      security,
+      deliveryDay,
+      billing_plan,
+      coupon,
+      numberOfCoupon,
+    } = req.body;
+
+    console.log("Received request to add customer:", req.body);
+
+    if (
+      !name ||
+      !phone_number ||
+      !address.precinct_no ||
+      security === undefined ||
+      !deliveryDay ||
+      !billing_plan ||
+      !coupon ||
+      numberOfCoupon === undefined
+    ) {
+      console.error("Validation failed. Missing required fields.");
+      return res
+        .status(400)
+        .json({ message: "Please provide all required fields" });
+    }
+    const securityDoc = await Security.findOne();
+    if (!securityDoc) {
+      console.error("Security document not found.");
+      return res.status(404).json({ message: "Security document not found" });
+    }
+    const securityValue = parseFloat(security);
+    if (isNaN(securityValue)) {
+      console.error("Invalid security value provided.");
+      return res
+        .status(400)
+        .json({ message: "Invalid security value provided." });
+    }
+
+    // Calculate balance
+    const balance = securityDoc.securityValue - securityValue;
+    if (isNaN(balance)) {
+      console.error("Failed to calculate balance.");
+      return res.status(400).json({ message: "Failed to calculate balance." });
+    }
+
+    // Create a new customer object
+    const customer = new Customer({
+      name,
+      phone_number,
+      address: {
+        street: address.street,
+        precinct_no: address.precinct_no,
+        house_no: address.house_no,
+        road: address.road,
+        tower: address.tower,
+        apartment: address.apartment,
+        buildingName: address.buildingName,
+        office: address.office,
+      },
+      balance,
+      security: securityValue,
+      deliveryDay,
+      billing_plan,
+      coupon,
+      numberOfCoupon,
+    });
+
+    console.log("Customer object being created:", customer);
     const newCustomer = await customer.save();
+    console.log("Customer saved successfully:", newCustomer);
     res.status(201).json(newCustomer);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error("Error saving customer:", err.message);
+    res.status(500).json({ message: err.message });
   }
 });
 
@@ -86,8 +108,7 @@ router.put("/:id", async (req, res) => {
     address,
     balance,
     security,
-    assigned_to,
-    deliveryDay,
+    billing_plan,
     coupon,
     numberOfCoupon,
   } = req.body;
@@ -97,6 +118,7 @@ router.put("/:id", async (req, res) => {
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
+
     if (name) customer.name = name;
     if (phone_number) customer.phone_number = phone_number;
     if (address) {
@@ -116,9 +138,8 @@ router.put("/:id", async (req, res) => {
         customer.address.office = address.office;
     }
     if (balance !== undefined) customer.balance = balance;
-    if (security !== undefined) customer.security = security; // Update security
-    if (assigned_to) customer.assigned_to = assigned_to;
-    if (deliveryDay) customer.deliveryDay = deliveryDay;
+    if (security !== undefined) customer.security = security;
+    if (billing_plan) customer.billing_plan = billing_plan;
     if (coupon) customer.coupon = coupon;
     if (numberOfCoupon !== undefined) customer.numberOfCoupon = numberOfCoupon;
 
@@ -197,14 +218,14 @@ router.get("/get-customers-data", async (req, res) => {
   try {
     const customers = await Customer.find(
       {},
-      "name phone_number address balance security billing_plan" // Include security
+      "name phone_number address balance security billing_plan"
     ).lean();
     const customerData = customers.map((customer) => ({
       name: customer.name,
       phone_number: customer.phone_number,
       address: customer.address,
       balance: customer.balance,
-      security: customer.security, // Include security
+      security: customer.security,
       billing_plan: customer.billing_plan,
     }));
     res.json(customerData);
@@ -214,11 +235,11 @@ router.get("/get-customers-data", async (req, res) => {
   }
 });
 
-// Endpoint to find customers assigned to a rider but not in the provided list
-router.post("/find-missing-customers", async (req, res) => {
-  const { customers, assignedTo } = req.body;
+// Endpoint to find customers by delivery days but not in the provided list
+router.post("/find-customers-by-day", async (req, res) => {
+  const { customers, days } = req.body;
 
-  if (!customers || !assignedTo) {
+  if (!customers || !days) {
     return res
       .status(400)
       .json({ message: "Please provide all required fields" });
@@ -226,12 +247,24 @@ router.post("/find-missing-customers", async (req, res) => {
 
   try {
     const customerNames = customers.map((customer) => customer.name);
-    const customerAddresses = customers.map((customer) =>
-      JSON.stringify(customer.address)
-    );
-    const customersNotInList = await Customer.find({
-      assigned_to: assignedTo,
+    const customerAddresses = customers.map((customer) => {
+      return JSON.stringify({
+        street: customer.address.street,
+        precinct_no: customer.address.precinct_no,
+        house_no: customer.address.house_no,
+        road: customer.address.road,
+        tower: customer.address.tower,
+        apartment: customer.address.apartment,
+        buildingName: customer.address.buildingName,
+        office: customer.address.office,
+      });
+    });
+    const matchingCustomers = await Customer.find({
       $or: [
+        { "deliveryDay.day1": { $in: days } },
+        { "deliveryDay.day2": { $in: days } },
+      ],
+      $and: [
         { name: { $nin: customerNames } },
         {
           address: { $nin: customerAddresses.map((addr) => JSON.parse(addr)) },
@@ -239,8 +272,9 @@ router.post("/find-missing-customers", async (req, res) => {
       ],
     }).lean();
 
-    res.status(200).json(customersNotInList);
+    res.status(200).json(matchingCustomers);
   } catch (err) {
+    console.error("Error finding customers:", err.message);
     res.status(500).json({ message: err.message });
   }
 });

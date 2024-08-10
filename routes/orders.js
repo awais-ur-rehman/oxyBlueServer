@@ -14,6 +14,8 @@ router.post("/add", async (req, res) => {
     total_amount,
     paid_amount,
     img = "",
+    added_by,
+    payment_option,
     order_status,
     coupon_received,
   } = req.body;
@@ -25,8 +27,10 @@ router.post("/add", async (req, res) => {
     received_bottles == null ||
     total_amount == null ||
     paid_amount == null ||
-    order_status == null ||
-    coupon_received == null
+    !order_status ||
+    coupon_received == null ||
+    !added_by ||
+    !payment_option
   ) {
     console.log("Missing or invalid fields:", req.body);
     return res.status(400).json({ message: "Incomplete Information" });
@@ -38,21 +42,15 @@ router.post("/add", async (req, res) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    const newNumberOfCoupons = customer.numberOfCoupon - coupon_received;
-    customer.numberOfCoupon = newNumberOfCoupons;
-    await customer.save();
     const existingOrder = await Orders.findOne({ customer_name, date });
-
-    if (
-      existingOrder &&
-      existingOrder.order_status === "Not Available" &&
-      order_status === "Completed"
-    ) {
+    if (existingOrder) {
       existingOrder.delivered_bottles = delivered_bottles;
       existingOrder.received_bottles = received_bottles;
       existingOrder.total_amount = total_amount;
       existingOrder.paid_amount = paid_amount;
       existingOrder.img = img;
+      existingOrder.added_by = added_by;
+      existingOrder.payment_option = payment_option;
       existingOrder.order_status = order_status;
       existingOrder.coupon_received = coupon_received;
 
@@ -68,6 +66,8 @@ router.post("/add", async (req, res) => {
         total_amount,
         paid_amount,
         img,
+        added_by,
+        payment_option,
         order_status,
         coupon_received,
       });

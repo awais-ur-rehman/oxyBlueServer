@@ -29,6 +29,12 @@ const orderSchema = new Schema({
   img: {
     type: String,
   },
+  added_by: {
+    type: String,
+  },
+  payment_option: {
+    type: String,
+  },
   order_status: {
     type: String,
     enum: ["Completed", "Not Available"],
