@@ -167,19 +167,33 @@ router.delete("/:id", async (req, res) => {
 
 // Route to get specific customers
 router.get("/get-order", async (req, res) => {
-  const { assigned_to, deliveryDay } = req.query;
-  if (!assigned_to || !deliveryDay) {
-    return res.status(400).json({ message: "Please provide required fields" });
+  const { day1, day2 } = req.query;
+
+  if (!day1 || !day2) {
+    return res
+      .status(400)
+      .json({ message: "Please provide both day1 and day2" });
   }
+
   try {
+    const daysArray = [day1, day2];
+
     const customers = await Customer.find({
-      deliveryDay: deliveryDay,
-      assigned_to: assigned_to,
+      $or: [
+        { "deliveryDay.day1": { $in: daysArray } },
+        { "deliveryDay.day2": { $in: daysArray } },
+      ],
     }).lean();
-    console.log(customers);
+
+    if (customers.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No customers found for the given days" });
+    }
+
     res.status(200).json(customers);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Server error: " + err.message });
   }
 });
 
