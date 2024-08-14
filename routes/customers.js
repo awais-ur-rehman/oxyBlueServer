@@ -371,9 +371,9 @@ router.post("/register-customer", async (req, res) => {
       }
     } else {
       // If bottle type is "Owned," these fields should be null
-      ratePerBottleValue = null;
-      perBottleSecurityValue = null;
-      securityTotalValue = null;
+      ratePerBottleValue = 0;
+      perBottleSecurityValue = 0;
+      securityTotalValue = 0;
     }
 
     // Validate address based on selected precinct
