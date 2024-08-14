@@ -3,25 +3,36 @@ const router = express.Router();
 const Customer = require("../models/customer");
 const Security = require("../models/security");
 
-// Route to get all customers
 router.get("/all-data", async (req, res) => {
   try {
-    const { deliveryDay } = req.query;
-    if (!deliveryDay) {
-      return res.status(400).json({ message: "Please provide a deliveryDay." });
+    // Get deliveryDays query parameter from request (assumed to be an array of days)
+    const { deliveryDays } = req.query;
+
+    // Validate that deliveryDays is provided and is an array
+    if (!deliveryDays || !Array.isArray(deliveryDays)) {
+      return res
+        .status(400)
+        .json({ message: "Please provide an array of deliveryDays." });
     }
+
+    // Find customers who have either of the specified delivery days in day1 or day2
     const customers = await Customer.find({
       $or: [
-        { "deliveryDay.day1": deliveryDay },
-        { "deliveryDay.day2": deliveryDay },
+        { "deliveryDay.day1": { $in: deliveryDays } },
+        { "deliveryDay.day2": { $in: deliveryDays } },
       ],
     }).lean();
+
+    // Format customer data (e.g., converting ObjectId to string)
     const formattedCustomers = customers.map((customer) => ({
       ...customer,
       _id: customer._id.toString(),
     }));
+
+    // Send the filtered and formatted customer data as a JSON response
     res.json(formattedCustomers);
   } catch (err) {
+    // Handle any errors that occur during the request
     res.status(500).json({ message: err.message });
   }
 });
