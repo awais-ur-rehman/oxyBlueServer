@@ -4,9 +4,18 @@ const Customer = require("../models/customer");
 const Security = require("../models/security");
 
 // Route to get all customers
-router.get("/", async (req, res) => {
+router.get("/all-data", async (req, res) => {
   try {
-    const customers = await Customer.find().lean();
+    const { deliveryDay } = req.query;
+    if (!deliveryDay) {
+      return res.status(400).json({ message: "Please provide a deliveryDay." });
+    }
+    const customers = await Customer.find({
+      $or: [
+        { "deliveryDay.day1": deliveryDay },
+        { "deliveryDay.day2": deliveryDay },
+      ],
+    }).lean();
     const formattedCustomers = customers.map((customer) => ({
       ...customer,
       _id: customer._id.toString(),
