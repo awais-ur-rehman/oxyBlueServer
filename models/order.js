@@ -42,7 +42,6 @@ const orderSchema = new Schema({
   },
   coupon_received: {
     type: Number,
-    required: true,
   },
 });
 

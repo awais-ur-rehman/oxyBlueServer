@@ -292,4 +292,156 @@ router.post("/find-customers-by-day", async (req, res) => {
   }
 });
 
+// Route to register a new customer
+router.post("/register-customer", async (req, res) => {
+  try {
+    let {
+      name,
+      phone_number,
+      registrationDate,
+      deliveryDay,
+      billingPlan,
+      couponType,
+      couponId,
+      numberOfCoupons,
+      balance,
+      bottleType,
+      ratePerBottle,
+      bottlesDelivered,
+      bottlesReceived,
+      perBottleSecurity,
+      securityTotal,
+      address,
+    } = req.body;
+
+    console.log("Received request to register customer:", req.body);
+
+    // Validate required fields
+    if (
+      !name ||
+      !phone_number ||
+      !registrationDate ||
+      !deliveryDay ||
+      !billingPlan ||
+      balance === undefined ||
+      !bottleType ||
+      bottlesDelivered === undefined ||
+      bottlesReceived === undefined
+    ) {
+      console.error("Validation failed. Missing required fields.");
+      return res
+        .status(400)
+        .json({ message: "Please provide all required fields" });
+    }
+
+    // Conditional validation for coupon billing plan
+    if (billingPlan === "Coupon Package") {
+      if (!couponType || !couponId || numberOfCoupons === undefined) {
+        console.error("Validation failed. Missing coupon fields.");
+        return res.status(400).json({
+          message:
+            "Please provide all coupon fields for the coupon billing plan.",
+        });
+      }
+    } else {
+      // If not a coupon package, these fields should be null
+      couponType = null;
+      couponId = null;
+      numberOfCoupons = null;
+    }
+
+    // Conditional validation for bottle type
+    let ratePerBottleValue = ratePerBottle;
+    let perBottleSecurityValue = perBottleSecurity;
+    let securityTotalValue = securityTotal;
+
+    if (bottleType === "Company") {
+      if (
+        ratePerBottle === undefined ||
+        perBottleSecurity === undefined ||
+        securityTotal === undefined
+      ) {
+        console.error(
+          "Validation failed. Missing required fields for company bottles."
+        );
+        return res.status(400).json({
+          message:
+            "Please provide rate per bottle, security per bottle, and security total for company bottles.",
+        });
+      }
+    } else {
+      // If bottle type is "Owned," these fields should be null
+      ratePerBottleValue = null;
+      perBottleSecurityValue = null;
+      securityTotalValue = null;
+    }
+
+    // Validate address based on selected precinct
+    if (
+      address.precinct_no === "P-19" ||
+      [
+        "Bharia Heights",
+        "Central Park apartment",
+        "Paragon apartments",
+      ].includes(address.precinct_no)
+    ) {
+      if (!address.tower || !address.apartment) {
+        return res.status(400).json({
+          message: "Please provide tower and apartment for this precinct.",
+        });
+      }
+    } else if (["Jinnah A", "Jinnah B"].includes(address.precinct_no)) {
+      if (!address.buildingName || !address.office) {
+        return res.status(400).json({
+          message: "Please provide building name and office for this precinct.",
+        });
+      }
+    } else if (address.precinct_no === "Head Office") {
+      if (!address.office) {
+        return res.status(400).json({
+          message: "Please provide office for Head Office precinct.",
+        });
+      }
+    } else {
+      if (!address.street || !address.road || !address.house_no) {
+        return res.status(400).json({
+          message:
+            "Please provide street, road, and house number for this precinct.",
+        });
+      }
+    }
+
+    // Create a new customer object
+    const customer = new Customer({
+      name,
+      phone_number,
+      registrationDate,
+      deliveryDay,
+      billingPlan,
+      couponType,
+      couponId,
+      numberOfCoupons,
+      balance,
+      bottleType,
+      ratePerBottle: ratePerBottleValue,
+      bottlesDelivered,
+      bottlesReceived,
+      perBottleSecurity: perBottleSecurityValue,
+      securityTotal: securityTotalValue,
+      securityBalance: securityTotalValue
+        ? securityTotalValue - bottlesDelivered * perBottleSecurityValue
+        : null,
+      address,
+    });
+
+    console.log("Customer object being created:", customer);
+    const newCustomer = await customer.save();
+    console.log("Customer saved successfully:", newCustomer);
+    res.status(201).json(newCustomer);
+  } catch (err) {
+    console.error("Error registering customer:", err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
