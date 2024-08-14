@@ -28,7 +28,7 @@ const customerSchema = new Schema({
   deliveryDay: { type: deliverySchema, required: true },
   billingPlan: {
     type: String,
-    enum: ["COD", "Monthly Package", "Coupon Package"],
+    enum: ["COD", "Monthly", "Coupon"],
   },
   couponType: { type: String, enum: ["16 Coupons", "28 Coupons"] },
   couponId: { type: String },
