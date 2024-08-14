@@ -5,25 +5,8 @@ const Security = require("../models/security");
 
 router.get("/all-data", async (req, res) => {
   try {
-    const { day1, day2 } = req.query;
-
-    if (!day1 || !day2) {
-      return res
-        .status(400)
-        .json({ message: "Please provide both day1 and day2" });
-    }
-    const customers = await Customer.find({
-      $or: [
-        { "deliveryDay.day1": { $in: deliveryDays } },
-        { "deliveryDay.day2": { $in: deliveryDays } },
-      ],
-    }).lean();
-    const formattedCustomers = customers.map((customer) => ({
-      ...customer,
-      _id: customer._id.toString(),
-    }));
-
-    res.json(formattedCustomers);
+    const customer = await Customer.find();
+    res.status(200).json(customer);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
