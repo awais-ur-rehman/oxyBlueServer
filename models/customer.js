@@ -24,7 +24,7 @@ const customerSchema = new Schema({
   name: { type: String, required: true },
   phone_number: { type: String, required: true },
   address: { type: addressSchema, required: true },
-  registrationDate: { type: Date, default: Date.now },
+  registrationDate: { type: String },
   deliveryDay: { type: deliverySchema, required: true },
   billingPlan: {
     type: String,

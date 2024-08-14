@@ -52,6 +52,7 @@ router.get("/generate-report", async (req, res) => {
 
     // Return the report
     res.status(200).json(report);
+    console.log(report);
   } catch (error) {
     console.error("Error generating report:", error);
     res.status(500).json({ message: "Internal Server Error" });
