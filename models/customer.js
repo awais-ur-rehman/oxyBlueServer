@@ -34,7 +34,7 @@ const customerSchema = new Schema({
   couponId: { type: String },
   numberOfCoupons: { type: Number },
   balance: { type: Number, required: true },
-  bottleType: { type: String, enum: ["ownBottles", "Company Bottles"] },
+  bottleType: { type: String, enum: ["ownBottles", "companyBottles"] },
   ratePerBottle: { type: Number },
   bottlesDelivered: { type: Number },
   bottlesReceived: { type: Number, required: true },
