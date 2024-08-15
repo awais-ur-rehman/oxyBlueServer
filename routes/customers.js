@@ -289,6 +289,7 @@ router.post("/find-customers-by-day", async (req, res) => {
 
 // Route to register a new customer
 router.post("/register-customer", async (req, res) => {
+  console.log("Started");
   try {
     let {
       name,
@@ -306,6 +307,7 @@ router.post("/register-customer", async (req, res) => {
       bottlesReceived,
       perBottleSecurity,
       securityTotal,
+      securityBalance, // Taken directly from request body
       address,
     } = req.body;
 
@@ -329,46 +331,30 @@ router.post("/register-customer", async (req, res) => {
         .json({ message: "Please provide all required fields" });
     }
 
-    // Conditional validation for coupon billing plan
-    if (billingPlan === "Coupon Package") {
-      if (!couponType || !couponId || numberOfCoupons === undefined) {
-        console.error("Validation failed. Missing coupon fields.");
-        return res.status(400).json({
-          message:
-            "Please provide all coupon fields for the coupon billing plan.",
-        });
-      }
-    } else {
-      // If not a coupon package, these fields should be null
-      couponType = null;
-      couponId = null;
-      numberOfCoupons = null;
+    // Validate coupon fields for the coupon billing plan
+    if (
+      billingPlan === "Coupon Package" &&
+      (!couponType || !couponId || numberOfCoupons === undefined)
+    ) {
+      console.error("Validation failed. Missing coupon fields.");
+      return res.status(400).json({
+        message:
+          "Please provide all coupon fields for the coupon billing plan.",
+      });
     }
 
-    // Conditional validation for bottle type
-    let ratePerBottleValue = ratePerBottle;
-    let perBottleSecurityValue = perBottleSecurity;
-    let securityTotalValue = securityTotal;
-
-    if (bottleType === "Company") {
-      if (
-        ratePerBottle === undefined ||
-        perBottleSecurity === undefined ||
-        securityTotal === undefined
-      ) {
-        console.error(
-          "Validation failed. Missing required fields for company bottles."
-        );
-        return res.status(400).json({
-          message:
-            "Please provide rate per bottle, security per bottle, and security total for company bottles.",
-        });
-      }
-    } else {
-      // If bottle type is "Owned," these fields should be null
-      ratePerBottleValue = 0;
-      perBottleSecurityValue = 0;
-      securityTotalValue = 0;
+    // Validate bottle-related fields based on bottle type
+    if (
+      bottleType === "companyBottles" &&
+      (perBottleSecurity === undefined || securityTotal === undefined)
+    ) {
+      console.error(
+        "Validation failed. Missing required fields for company bottles."
+      );
+      return res.status(400).json({
+        message:
+          "Please provide security per bottle and security total for company bottles.",
+      });
     }
 
     // Validate address based on selected precinct
@@ -391,19 +377,15 @@ router.post("/register-customer", async (req, res) => {
           message: "Please provide building name and office for this precinct.",
         });
       }
-    } else if (address.precinct_no === "Head Office") {
-      if (!address.office) {
-        return res.status(400).json({
-          message: "Please provide office for Head Office precinct.",
-        });
-      }
-    } else {
-      if (!address.street || !address.road || !address.house_no) {
-        return res.status(400).json({
-          message:
-            "Please provide street, road, and house number for this precinct.",
-        });
-      }
+    } else if (address.precinct_no === "Head Office" && !address.office) {
+      return res.status(400).json({
+        message: "Please provide office for Head Office precinct.",
+      });
+    } else if (!address.street || !address.road || !address.house_no) {
+      return res.status(400).json({
+        message:
+          "Please provide street, road, and house number for this precinct.",
+      });
     }
 
     // Create a new customer object
@@ -418,14 +400,13 @@ router.post("/register-customer", async (req, res) => {
       numberOfCoupons,
       balance,
       bottleType,
-      ratePerBottle: ratePerBottleValue,
+      ratePerBottle, // Store ratePerBottle as is
       bottlesDelivered,
       bottlesReceived,
-      perBottleSecurity: perBottleSecurityValue,
-      securityTotal: securityTotalValue,
-      securityBalance: securityTotalValue
-        ? securityTotalValue - bottlesDelivered * perBottleSecurityValue
-        : null,
+      perBottleSecurity:
+        bottleType === "companyBottles" ? perBottleSecurity : 0,
+      securityTotal: bottleType === "companyBottles" ? securityTotal : 0,
+      securityBalance, // Taken directly from the request body
       address,
     });
 
