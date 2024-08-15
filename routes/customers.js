@@ -325,22 +325,26 @@ router.post("/register-customer", async (req, res) => {
       bottlesDelivered === undefined ||
       bottlesReceived === undefined
     ) {
-      console.error("Validation failed. Missing required fields.");
+      console.log("Validation failed. Missing required fields.");
       return res
         .status(400)
         .json({ message: "Please provide all required fields" });
     }
 
     // Validate coupon fields for the coupon billing plan
-    if (
-      billingPlan === "Coupon Package" &&
-      (!couponType || !couponId || numberOfCoupons === undefined)
-    ) {
-      console.error("Validation failed. Missing coupon fields.");
-      return res.status(400).json({
-        message:
-          "Please provide all coupon fields for the coupon billing plan.",
-      });
+    if (billingPlan === "Coupon Package") {
+      if (!couponType || !couponId || numberOfCoupons === undefined) {
+        console.log("Validation failed. Missing coupon fields.");
+        return res.status(400).json({
+          message:
+            "Please provide all coupon fields for the coupon billing plan.",
+        });
+      }
+    } else {
+      // If not a coupon package, set couponType to null
+      couponType = null;
+      couponId = null;
+      numberOfCoupons = null;
     }
 
     // Validate bottle-related fields based on bottle type
@@ -348,7 +352,7 @@ router.post("/register-customer", async (req, res) => {
       bottleType === "companyBottles" &&
       (perBottleSecurity === undefined || securityTotal === undefined)
     ) {
-      console.error(
+      console.log(
         "Validation failed. Missing required fields for company bottles."
       );
       return res.status(400).json({
@@ -366,22 +370,30 @@ router.post("/register-customer", async (req, res) => {
         "Paragon apartments",
       ].includes(address.precinct_no)
     ) {
+      console.log("Please provide tower and apartment for this precinct.");
       if (!address.tower || !address.apartment) {
         return res.status(400).json({
           message: "Please provide tower and apartment for this precinct.",
         });
       }
     } else if (["Jinnah A", "Jinnah B"].includes(address.precinct_no)) {
-      if (!address.buildingName || !address.office) {
+      if (!address.building_name || !address.office) {
+        console.log(
+          "Please provide building name and office for this precinct."
+        );
         return res.status(400).json({
           message: "Please provide building name and office for this precinct.",
         });
       }
     } else if (address.precinct_no === "Head Office" && !address.office) {
+      console.log("Please provide office for Head Office precinct.");
       return res.status(400).json({
         message: "Please provide office for Head Office precinct.",
       });
     } else if (!address.street || !address.road || !address.house_no) {
+      console.log(
+        "Please provide street, road, and house number for this precinct."
+      );
       return res.status(400).json({
         message:
           "Please provide street, road, and house number for this precinct.",
@@ -395,7 +407,7 @@ router.post("/register-customer", async (req, res) => {
       registrationDate,
       deliveryDay,
       billingPlan,
-      couponType,
+      couponType, // Set to null if not applicable
       couponId,
       numberOfCoupons,
       balance,
@@ -415,7 +427,7 @@ router.post("/register-customer", async (req, res) => {
     console.log("Customer saved successfully:", newCustomer);
     res.status(201).json(newCustomer);
   } catch (err) {
-    console.error("Error registering customer:", err.message);
+    console.log("Error registering customer:", err.message);
     res.status(500).json({ message: err.message });
   }
 });
