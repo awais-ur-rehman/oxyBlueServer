@@ -25,6 +25,7 @@ const customerRoutes = require("./routes/customers");
 const orderRoutes = require("./routes/orders");
 const totalRoutes = require("./routes/total");
 const reportRoutes = require("./routes/dailyReport");
+const couponRoutes = require("./routes/coupons");
 
 app.use("/expenses", expenseRoutes);
 app.use("/riders", ridersRoutes);
@@ -32,6 +33,7 @@ app.use("/customers", customerRoutes);
 app.use("/orders", orderRoutes);
 app.use("/totals", totalRoutes);
 app.use("/reports", reportRoutes);
+app.use("/coupons", couponRoutes);
 
 // Start the server
 app.listen(port, () => {
