@@ -58,7 +58,7 @@ router.post("/add", async (req, res) => {
           added_by
         );
 
-        return res.status(201).json(updatedOrder);
+        return res.status(200).json(updatedOrder);
       }
     }
 
@@ -92,7 +92,7 @@ router.post("/add", async (req, res) => {
       added_by
     );
 
-    res.status(201).json(savedOrder);
+    res.status(200).json(savedOrder);
   } catch (error) {
     console.error("Error adding order:", error.message);
     res.status(500).json({ message: "Error processing your request" });
