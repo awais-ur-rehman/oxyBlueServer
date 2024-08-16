@@ -46,6 +46,9 @@ const orderSchema = new Schema({
   coupon_received: {
     type: Number,
   },
+  paid_security: {
+    type: Number,
+  },
 });
 
 const Orders = mongoose.model("Orders", orderSchema);

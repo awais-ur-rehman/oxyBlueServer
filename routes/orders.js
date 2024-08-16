@@ -19,7 +19,7 @@ router.post("/add", async (req, res) => {
     balance,
     order_status,
     coupon_received,
-    security,
+    paid_security,
   } = req.body;
 
   try {
@@ -43,6 +43,7 @@ router.post("/add", async (req, res) => {
         existingOrder.balance = balance;
         existingOrder.order_status = order_status;
         existingOrder.coupon_received = coupon_received;
+        existingOrder.paid_security = paid_security;
 
         const updatedOrder = await existingOrder.save();
         console.log("Existing order updated:", updatedOrder);
@@ -54,7 +55,7 @@ router.post("/add", async (req, res) => {
           received_bottles,
           coupon_received,
           balance,
-          security,
+          paid_security,
           added_by
         );
 
@@ -76,6 +77,7 @@ router.post("/add", async (req, res) => {
       balance,
       order_status,
       coupon_received,
+      paid_security,
     });
 
     const savedOrder = await newOrder.save();
@@ -88,7 +90,7 @@ router.post("/add", async (req, res) => {
       received_bottles,
       coupon_received,
       balance,
-      security,
+      paid_security,
       added_by
     );
 
@@ -106,7 +108,7 @@ async function updateCustomerAndRider(
   received_bottles,
   coupon_received,
   balance,
-  security,
+  paid_security,
   riderName
 ) {
   try {
@@ -114,30 +116,19 @@ async function updateCustomerAndRider(
     if (!customer) {
       throw new Error("Customer not found");
     }
-
-    // Update bottles delivered and received
     customer.bottlesDelivered += delivered_bottles;
     customer.bottlesReceived += received_bottles;
-
-    // Update coupons if applicable
     if (coupon_received && customer.numberOfCoupons >= coupon_received) {
       customer.numberOfCoupons -= coupon_received;
     }
-
-    // Update balance if applicable
     if (balance > 0) {
       customer.balance -= balance;
     }
-
-    // Update security if applicable
-    if (security > 0) {
-      customer.securityBalance -= security;
+    if (paid_security > 0) {
+      customer.securityBalance -= paid_security;
     }
-
     await customer.save();
     console.log("Customer updated:", customer);
-
-    // Update the rider's completed deliveries count
     const rider = await Rider.findOne({ name: riderName });
     if (rider) {
       rider.deliveries_completed += 1;
@@ -148,37 +139,6 @@ async function updateCustomerAndRider(
     console.error("Error updating customer or rider:", error.message);
     throw error;
   }
-}
-
-module.exports = router;
-
-// Function to update customer data
-async function updateCustomerData(
-  customer,
-  delivered_bottles,
-  received_bottles,
-  coupon_received,
-  total_amount,
-  paid_amount
-) {
-  // Update bottles delivered and received
-  customer.bottlesDelivered += delivered_bottles;
-  customer.bottlesReceived += received_bottles;
-
-  // Update number of coupons if applicable
-  if (customer.billingPlan === "Coupon Package" && coupon_received) {
-    customer.numberOfCoupons -= coupon_received;
-  }
-
-  // Update customer balance if paid amount is less than total amount
-  if (paid_amount < total_amount) {
-    const remainingAmount = total_amount - paid_amount;
-    customer.balance += remainingAmount;
-  }
-
-  // Save updated customer data
-  await customer.save();
-  console.log("Customer data updated:", customer);
 }
 
 // View all orders
