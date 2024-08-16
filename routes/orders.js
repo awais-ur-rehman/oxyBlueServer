@@ -4,7 +4,7 @@ const Orders = require("../models/order");
 const Customer = require("../models/customer");
 const Rider = require("../models/rider");
 
-// Route to add or update an order
+// Route to add an order and update customer and rider data
 router.post("/add", async (req, res) => {
   const {
     customer_name,
@@ -13,98 +13,144 @@ router.post("/add", async (req, res) => {
     received_bottles,
     total_amount,
     paid_amount,
-    img = "",
+    img,
     added_by,
     payment_option,
+    balance,
     order_status,
     coupon_received,
+    security,
   } = req.body;
 
-  if (
-    !customer_name ||
-    !date ||
-    delivered_bottles == null ||
-    received_bottles == null ||
-    total_amount == null ||
-    paid_amount == null ||
-    !order_status ||
-    coupon_received == null ||
-    !added_by ||
-    !payment_option
-  ) {
-    console.log("Missing or invalid fields:", req.body);
-    return res.status(400).json({ message: "Incomplete Information" });
-  }
-
   try {
-    const customer = await Customer.findOne({ name: customer_name });
-    if (!customer) {
-      return res.status(404).json({ message: "Customer not found" });
-    }
-
-    const existingOrder = await Orders.findOne({ customer_name, date });
-    if (existingOrder) {
-      // Update existing order
-      existingOrder.delivered_bottles = delivered_bottles;
-      existingOrder.received_bottles = received_bottles;
-      existingOrder.total_amount = total_amount;
-      existingOrder.paid_amount = paid_amount;
-      existingOrder.img = img;
-      existingOrder.added_by = added_by;
-      existingOrder.payment_option = payment_option;
-      existingOrder.order_status = order_status;
-      existingOrder.coupon_received = coupon_received;
-
-      const updatedOrder = await existingOrder.save();
-      console.log("Order updated:", updatedOrder);
-
-      // Update customer data based on the order
-      await updateCustomerData(
-        customer,
-        delivered_bottles,
-        received_bottles,
-        coupon_received,
-        total_amount,
-        paid_amount
-      );
-
-      res.status(201).json(updatedOrder);
-    } else {
-      // Create a new order
-      const newOrder = new Orders({
+    // Check if there is an existing order with the same customer and date, but with "Not Available" status
+    if (order_status === "Completed") {
+      const existingOrder = await Orders.findOne({
         customer_name,
         date,
-        delivered_bottles,
-        received_bottles,
-        total_amount,
-        paid_amount,
-        img,
-        added_by,
-        payment_option,
-        order_status,
-        coupon_received,
+        order_status: "Not Available",
       });
 
-      const savedOrder = await newOrder.save();
-      console.log("New order saved:", savedOrder);
+      if (existingOrder) {
+        // Update the existing order with the new data
+        existingOrder.delivered_bottles = delivered_bottles;
+        existingOrder.received_bottles = received_bottles;
+        existingOrder.total_amount = total_amount;
+        existingOrder.paid_amount = paid_amount;
+        existingOrder.img = img;
+        existingOrder.added_by = added_by;
+        existingOrder.payment_option = payment_option;
+        existingOrder.balance = balance;
+        existingOrder.order_status = order_status;
+        existingOrder.coupon_received = coupon_received;
 
-      // Update customer data based on the order
-      await updateCustomerData(
-        customer,
-        delivered_bottles,
-        received_bottles,
-        coupon_received,
-        total_amount,
-        paid_amount
-      );
+        const updatedOrder = await existingOrder.save();
+        console.log("Existing order updated:", updatedOrder);
 
-      res.status(201).json(savedOrder);
+        // Update customer and rider data
+        await updateCustomerAndRider(
+          customer_name,
+          delivered_bottles,
+          received_bottles,
+          coupon_received,
+          balance,
+          security,
+          added_by
+        );
+
+        return res.status(201).json(updatedOrder);
+      }
     }
+
+    // If no existing order found, create a new order
+    const newOrder = new Orders({
+      customer_name,
+      date,
+      delivered_bottles,
+      received_bottles,
+      total_amount,
+      paid_amount,
+      img,
+      added_by,
+      payment_option,
+      balance,
+      order_status,
+      coupon_received,
+    });
+
+    const savedOrder = await newOrder.save();
+    console.log("New order saved:", savedOrder);
+
+    // Update customer and rider data
+    await updateCustomerAndRider(
+      customer_name,
+      delivered_bottles,
+      received_bottles,
+      coupon_received,
+      balance,
+      security,
+      added_by
+    );
+
+    res.status(201).json(savedOrder);
   } catch (error) {
-    console.log(`Error creating or updating order: ${error}`);
+    console.error("Error adding order:", error.message);
     res.status(500).json({ message: "Error processing your request" });
   }
 });
+
+// Function to update customer and rider data based on the order
+async function updateCustomerAndRider(
+  customer_name,
+  delivered_bottles,
+  received_bottles,
+  coupon_received,
+  balance,
+  security,
+  riderName
+) {
+  try {
+    const customer = await Customer.findOne({ name: customer_name });
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+
+    // Update bottles delivered and received
+    customer.bottlesDelivered += delivered_bottles;
+    customer.bottlesReceived += received_bottles;
+
+    // Update coupons if applicable
+    if (coupon_received && customer.numberOfCoupons >= coupon_received) {
+      customer.numberOfCoupons -= coupon_received;
+    }
+
+    // Update balance if applicable
+    if (balance > 0) {
+      customer.balance -= balance;
+    }
+
+    // Update security if applicable
+    if (security > 0) {
+      customer.securityBalance -= security;
+    }
+
+    await customer.save();
+    console.log("Customer updated:", customer);
+
+    // Update the rider's completed deliveries count
+    const rider = await Rider.findOne({ name: riderName });
+    if (rider) {
+      rider.deliveries_completed += 1;
+      await rider.save();
+      console.log("Rider deliveries updated:", rider);
+    }
+  } catch (error) {
+    console.error("Error updating customer or rider:", error.message);
+    throw error;
+  }
+}
+
+module.exports = router;
 
 // Function to update customer data
 async function updateCustomerData(

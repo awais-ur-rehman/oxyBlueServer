@@ -35,6 +35,9 @@ const orderSchema = new Schema({
   payment_option: {
     type: String,
   },
+  balance: {
+    type: Number,
+  },
   order_status: {
     type: String,
     enum: ["Completed", "Not Available"],
