@@ -9,7 +9,7 @@ const addressSchema = new Schema({
   road: { type: String, required: false },
   tower: { type: String, required: false },
   apartment: { type: String, required: false },
-  buildingName: { type: String, required: false },
+  building_name: { type: String, required: false },
   office: { type: String, required: false },
 });
 

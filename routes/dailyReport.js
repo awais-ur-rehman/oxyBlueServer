@@ -16,14 +16,20 @@ router.get("/generate-report", async (req, res) => {
 
     // Sum up delivered and received bottles for the given date and rider
     const orders = await Orders.find({ date, added_by: name });
+    
     const totalDeliveredBottles = orders.reduce(
       (sum, order) => sum + order.delivered_bottles,
       0
     );
+    console.log(totalDeliveredBottles);
+    console.log(date);
+    console.log(name);
+
     const totalReceivedBottles = orders.reduce(
       (sum, order) => sum + order.received_bottles,
       0
     );
+    console.log(totalReceivedBottles);
 
     // Sum up payment amounts based on payment option (COD or Online)
     const totalCODPayments = orders
@@ -33,6 +39,8 @@ router.get("/generate-report", async (req, res) => {
       .filter((order) => order.payment_option === "Online")
       .reduce((sum, order) => sum + order.paid_amount, 0);
 
+    console.log(totalCODPayments);
+    console.log(totalOnlinePayments);
     // Sum up expenses for the given date and rider
     const expenses = await Expense.find({ date, added_by: name });
     const totalExpenses = expenses.reduce(

@@ -94,27 +94,40 @@ router.post("/add-customer", async (req, res) => {
   }
 });
 
-// Route to update a customer
-router.put("/:id", async (req, res) => {
+// Route to update a customer by name
+router.put("/updateByName", async (req, res) => {
   const {
     name,
     phone_number,
     address,
+    registrationDate,
+    deliveryDay,
+    billingPlan,
+    couponType,
+    couponId,
+    numberOfCoupons,
     balance,
-    security,
-    billing_plan,
-    coupon,
-    numberOfCoupon,
+    bottleType,
+    ratePerBottle,
+    bottlesDelivered,
+    bottlesReceived,
+    perBottleSecurity,
+    securityTotal,
+    securityBalance,
   } = req.body;
 
   try {
-    const customer = await Customer.findById(req.params.id);
+    // Find the customer by name
+    const customer = await Customer.findOne({ name: name });
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    if (name) customer.name = name;
+    // Update customer fields with the received data
     if (phone_number) customer.phone_number = phone_number;
+    if (registrationDate) customer.registrationDate = registrationDate;
+
+    // Update address fields
     if (address) {
       if (address.street !== undefined)
         customer.address.street = address.street;
@@ -131,15 +144,39 @@ router.put("/:id", async (req, res) => {
       if (address.office !== undefined)
         customer.address.office = address.office;
     }
-    if (balance !== undefined) customer.balance = balance;
-    if (security !== undefined) customer.security = security;
-    if (billing_plan) customer.billing_plan = billing_plan;
-    if (coupon) customer.coupon = coupon;
-    if (numberOfCoupon !== undefined) customer.numberOfCoupon = numberOfCoupon;
 
+    // Update delivery day
+    if (deliveryDay) {
+      if (deliveryDay.day1 !== undefined)
+        customer.deliveryDay.day1 = deliveryDay.day1;
+      if (deliveryDay.day2 !== undefined)
+        customer.deliveryDay.day2 = deliveryDay.day2;
+    }
+
+    // Update other fields
+    if (balance !== undefined) customer.balance = balance;
+    if (billingPlan) customer.billingPlan = billingPlan;
+    if (couponType) customer.couponType = couponType;
+    if (couponId) customer.couponId = couponId;
+    if (numberOfCoupons !== undefined)
+      customer.numberOfCoupons = numberOfCoupons;
+    if (bottleType) customer.bottleType = bottleType;
+    if (ratePerBottle !== undefined) customer.ratePerBottle = ratePerBottle;
+    if (bottlesDelivered !== undefined)
+      customer.bottlesDelivered = bottlesDelivered;
+    if (bottlesReceived !== undefined)
+      customer.bottlesReceived = bottlesReceived;
+    if (perBottleSecurity !== undefined)
+      customer.perBottleSecurity = perBottleSecurity;
+    if (securityTotal !== undefined) customer.securityTotal = securityTotal;
+    if (securityBalance !== undefined)
+      customer.securityBalance = securityBalance;
+
+    // Save the updated customer
     const updatedCustomer = await customer.save();
     res.json(updatedCustomer);
   } catch (err) {
+    console.log(err.message);
     res.status(500).json({ message: err.message });
   }
 });
@@ -307,7 +344,7 @@ router.post("/register-customer", async (req, res) => {
       bottlesReceived,
       perBottleSecurity,
       securityTotal,
-      securityBalance, // Taken directly from request body
+      securityBalance,
       address,
     } = req.body;
 
