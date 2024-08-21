@@ -51,4 +51,12 @@ router.post("/add", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const coupon = await Coupon.find();
+    res.status(200).json(coupon);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 module.exports = router;
