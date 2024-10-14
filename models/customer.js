@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-// Define the address schema
 const addressSchema = new Schema({
   street: { type: String, required: false },
   precinct_no: { type: String, required: true },
@@ -13,13 +12,11 @@ const addressSchema = new Schema({
   office: { type: String, required: false },
 });
 
-// Define the delivery schema
 const deliverySchema = new Schema({
   day1: { type: String },
   day2: { type: String },
 });
 
-// Define the customer schema
 const customerSchema = new Schema({
   name: { type: String, required: true },
   phone_number: { type: String, required: true },
@@ -28,7 +25,6 @@ const customerSchema = new Schema({
   deliveryDay: { type: deliverySchema, required: true },
   billingPlan: {
     type: String,
-    enum: ["COD", "Monthly", "Coupon"],
   },
   couponType: { type: String, enum: ["16 Coupons", "28 Coupons"] },
   couponId: { type: String },
