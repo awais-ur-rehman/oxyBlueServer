@@ -26,8 +26,6 @@ router.post("/add-customer", async (req, res) => {
       numberOfCoupon,
     } = req.body;
 
-    console.log("Received request to add customer:", req.body);
-
     if (
       !name ||
       !phone_number ||
@@ -84,9 +82,7 @@ router.post("/add-customer", async (req, res) => {
       numberOfCoupon,
     });
 
-    console.log("Customer object being created:", customer);
     const newCustomer = await customer.save();
-    console.log("Customer saved successfully:", newCustomer);
     res.status(201).json(newCustomer);
   } catch (err) {
     console.error("Error saving customer:", err.message);
@@ -176,7 +172,6 @@ router.put("/updateByName", async (req, res) => {
     const updatedCustomer = await customer.save();
     res.json(updatedCustomer);
   } catch (err) {
-    console.log(err.message);
     res.status(500).json({ message: err.message });
   }
 });
@@ -208,7 +203,6 @@ router.get("/get-order", async (req, res) => {
 
   try {
     const daysArray = [day1, day2];
-
     const customers = await Customer.find({
       $or: [
         { "deliveryDay.day1": { $in: daysArray } },
@@ -231,8 +225,6 @@ router.get("/get-order", async (req, res) => {
 // Route to get specific customers based on name containing the provided name
 router.get("/get-customer", async (req, res) => {
   const { name } = req.query;
-  console.log({ name });
-
   if (!name) {
     return res.status(400).json({ message: "Please provide search criteria" });
   }
@@ -348,8 +340,6 @@ router.post("/register-customer", async (req, res) => {
       address,
     } = req.body;
 
-    console.log("Received request to register customer:", req.body);
-
     // Validate required fields
     if (
       !name ||
@@ -362,7 +352,6 @@ router.post("/register-customer", async (req, res) => {
       bottlesDelivered === undefined ||
       bottlesReceived === undefined
     ) {
-      console.log("Validation failed. Missing required fields.");
       return res
         .status(400)
         .json({ message: "Please provide all required fields" });
@@ -371,7 +360,6 @@ router.post("/register-customer", async (req, res) => {
     // Validate coupon fields for the coupon billing plan
     if (billingPlan === "Coupon Package") {
       if (!couponType || !couponId || numberOfCoupons === undefined) {
-        console.log("Validation failed. Missing coupon fields.");
         return res.status(400).json({
           message:
             "Please provide all coupon fields for the coupon billing plan.",
@@ -389,9 +377,6 @@ router.post("/register-customer", async (req, res) => {
       bottleType === "companyBottles" &&
       (perBottleSecurity === undefined || securityTotal === undefined)
     ) {
-      console.log(
-        "Validation failed. Missing required fields for company bottles."
-      );
       return res.status(400).json({
         message:
           "Please provide security per bottle and security total for company bottles.",
@@ -407,7 +392,6 @@ router.post("/register-customer", async (req, res) => {
         "Paragon apartments",
       ].includes(address.precinct_no)
     ) {
-      console.log("Please provide tower and apartment for this precinct.");
       if (!address.tower || !address.apartment) {
         return res.status(400).json({
           message: "Please provide tower and apartment for this precinct.",
@@ -415,22 +399,15 @@ router.post("/register-customer", async (req, res) => {
       }
     } else if (["Jinnah A", "Jinnah B"].includes(address.precinct_no)) {
       if (!address.building_name || !address.office) {
-        console.log(
-          "Please provide building name and office for this precinct."
-        );
         return res.status(400).json({
           message: "Please provide building name and office for this precinct.",
         });
       }
     } else if (address.precinct_no === "Head Office" && !address.office) {
-      console.log("Please provide office for Head Office precinct.");
       return res.status(400).json({
         message: "Please provide office for Head Office precinct.",
       });
     } else if (!address.street || !address.road || !address.house_no) {
-      console.log(
-        "Please provide street, road, and house number for this precinct."
-      );
       return res.status(400).json({
         message:
           "Please provide street, road, and house number for this precinct.",
@@ -444,27 +421,24 @@ router.post("/register-customer", async (req, res) => {
       registrationDate,
       deliveryDay,
       billingPlan,
-      couponType, // Set to null if not applicable
+      couponType,
       couponId,
       numberOfCoupons,
       balance,
       bottleType,
-      ratePerBottle, // Store ratePerBottle as is
+      ratePerBottle,
       bottlesDelivered,
       bottlesReceived,
       perBottleSecurity:
         bottleType === "companyBottles" ? perBottleSecurity : 0,
       securityTotal: bottleType === "companyBottles" ? securityTotal : 0,
-      securityBalance, // Taken directly from the request body
+      securityBalance,
       address,
     });
 
-    console.log("Customer object being created:", customer);
     const newCustomer = await customer.save();
-    console.log("Customer saved successfully:", newCustomer);
     res.status(201).json(newCustomer);
   } catch (err) {
-    console.log("Error registering customer:", err.message);
     res.status(500).json({ message: err.message });
   }
 });

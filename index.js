@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const app = express();
+require("dotenv").config();
 const port = process.env.PORT || 8080;
 
 // Middleware
@@ -11,8 +12,7 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 // MongoDB Connection
-const dbUrl =
-  "mongodb+srv://awaisurrehman:RealMadrid@mongodb.uk7fwy7.mongodb.net/OxyBlue?retryWrites=true&w=majority&appName=MongoDB";
+const dbUrl = process.env.PROD_DB_URL;
 mongoose
   .connect(dbUrl)
   .then(() => console.log("MongoDB connected"))

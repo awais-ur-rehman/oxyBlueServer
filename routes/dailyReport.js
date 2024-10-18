@@ -11,18 +11,16 @@ router.get("/generate-report", async (req, res) => {
     if (!date) {
       const today = new Date();
       const day = String(today.getDate()).padStart(2, "0");
-      const month = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-      const year = String(today.getFullYear()).slice(-2); // Get last two digits of the year
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const year = String(today.getFullYear()).slice(-2);
       date = `${day}-${month}-${year}`;
     }
 
-    // Fetch the rider's data
     const rider = await Rider.findOne({ name });
     if (!rider) {
       return res.status(404).json({ message: "Rider not found" });
     }
 
-    // Sum up delivered and received bottles for the given date and rider
     const orders = await Orders.find({ date, added_by: name });
 
     const totalDeliveredBottles = orders.reduce(
@@ -35,7 +33,6 @@ router.get("/generate-report", async (req, res) => {
       0
     );
 
-    // Sum up payment amounts based on payment option (COD or Online)
     const totalCODPayments = orders
       .filter((order) => order.payment_option === "COD")
       .reduce((sum, order) => sum + order.paid_amount, 0);
@@ -44,24 +41,21 @@ router.get("/generate-report", async (req, res) => {
       .filter((order) => order.payment_option === "Online")
       .reduce((sum, order) => sum + order.paid_amount, 0);
 
-    // Sum up expenses for the given date and rider
     const expenses = await Expense.find({ date, added_by: name });
     const totalExpenses = expenses.reduce(
       (sum, expense) => sum + expense.amount,
       0
     );
 
-    // Count the number of completed deliveries for the given date
     const currentDeliveries = await Orders.countDocuments({
       date,
       added_by: name,
       order_status: "Completed",
     });
 
-    // Construct the report
     const report = {
-      deliveries_completed: rider.deliveries_completed, // Total completed deliveries over time
-      current_deliveries: currentDeliveries, // Deliveries completed today
+      deliveries_completed: rider.deliveries_completed,
+      current_deliveries: currentDeliveries,
       totalDeliveredBottles,
       totalReceivedBottles,
       totalCODPayments,
