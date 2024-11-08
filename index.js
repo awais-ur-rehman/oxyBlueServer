@@ -14,9 +14,7 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 // MongoDB Connection
 const dbUrl = process.env.PROD_DB_URL;
 mongoose
-  .connect(
-    "mongodb+srv://dripitwatersolutions:ge6iLEaS8CezIox8@cluster0.mzbjl.mongodb.net/OxyBlue?retryWrites=true&w=majority&appName=Cluster0"
-  )
+  .connect(dbUrl)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
