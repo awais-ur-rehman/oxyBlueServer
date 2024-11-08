@@ -14,11 +14,9 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 // MongoDB Connection
 const dbUrl = process.env.PROD_DB_URL;
 mongoose
-  .connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(dbUrl)
   .then(() => console.log("MongoDB connected"))
-  .catch((err) => {
-    console.log("MongoDB connection error:", err);
-  });
+  .catch((err) => console.log("MongoDB connection error:", err));
 
 // Routes
 const expenseRoutes = require("./routes/expenses");
